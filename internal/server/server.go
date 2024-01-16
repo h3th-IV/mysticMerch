@@ -39,7 +39,7 @@ func Routes() {
 	SetProductRoutes(router)
 
 	server := &http.Server{
-		Addr:     "8000",
+		Addr:     ":8000",
 		Handler:  router,
 		ErrorLog: Merch.errlog,
 	}
