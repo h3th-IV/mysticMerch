@@ -1,14 +1,14 @@
 ## e-Commerce Application 
 
-- [ ]Database Model:
+- [ ] Database Model:
 
-    User Model:
+    - User Model:
         Fields: id, username, email, password, created_at, updated_at
-    Product Model:
+    - Product Model:
         Fields: id, name, description, price, quantity, created_at, updated_at, user (Foreign Key to User)
 
     - Authentication:
-    to be decided
+        to be decided
 
 - [ ] Product Management:
 
