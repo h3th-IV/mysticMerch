@@ -1,10 +1,18 @@
 package api
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
+
+// home Handler
+func Home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "Welcome to MysticeMerch")
+}
 
 // signUp post form Hadler
 func SignUp(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Fprintln(w, "SignUP was succesfull")
 }
 
 // Login Post Handler
@@ -27,17 +35,22 @@ func ViewProducts(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// edit prduct
-func EditProduct(w http.ResponseWriter, r *http.Request) {
-
-}
-
 // update product details
 func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 
 }
 
 func UserCart(w http.ResponseWriter, r *http.Request) {
+
+}
+
+// edit prduct
+func AddtoCart(w http.ResponseWriter, r *http.Request) {
+
+}
+
+// edit prduct
+func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 
 }
 

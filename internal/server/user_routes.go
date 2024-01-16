@@ -8,6 +8,7 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/api"
 )
 
+// to curb directory access to non-adminstrative user
 type neuteredFileSystem struct {
 	fs http.FileSystem
 }
@@ -42,5 +43,4 @@ func SetUserRoutes(router *mux.Router) {
 	//routes for the user
 	UserRouter.HandleFunc("/signup", api.SignUp)
 	UserRouter.HandleFunc("/login", api.LogIn)
-	UserRouter.HandleFunc("/cart", api.UserCart)
 }

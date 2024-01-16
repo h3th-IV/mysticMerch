@@ -10,4 +10,8 @@ func SetProductRoutes(router *mux.Router) {
 
 	ProductRoutes.HandleFunc("/viewall", api.ViewProducts)
 	ProductRoutes.HandleFunc("/search/{query:[tbb]}", api.SearchProduct)
+	ProductRoutes.HandleFunc("/cart", api.UserCart)     //will require authentication MW
+	ProductRoutes.HandleFunc("/additem", api.AddtoCart) //will require authentication MW
+	ProductRoutes.HandleFunc("/removeitem", api.RemovefromCart)
+
 }

@@ -6,6 +6,9 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/h3th-IV/mysticMerch/internal/api"
+	"github.com/h3th-IV/mysticMerch/internal/utils"
+	"github.com/justinas/alice"
 )
 
 // struct for the Apllication related configuration
@@ -21,13 +24,17 @@ func Routes() {
 	//logger for writing error related messages
 	ErrorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
+	//use alice package potential middleware
+	middlewareChain := alice.New(utils.ReuestLogger)
+
 	//new merch commerce
-	Merch := MarketPlace{
+	MerchApp := MarketPlace{
 		infolog: InfoLog,
 		errlog:  ErrorLog,
 	}
 
 	router := mux.NewRouter()
+	router.HandleFunc("/", api.Home)
 
 	//set Admin related routes
 	SetAdminRoutes(router)
@@ -38,12 +45,12 @@ func Routes() {
 	//set Product realted routes
 	SetProductRoutes(router)
 
+	router.Use(middlewareChain.Then)
 	server := &http.Server{
 		Addr:     ":8000",
 		Handler:  router,
-		ErrorLog: Merch.errlog,
+		ErrorLog: MerchApp.errlog,
 	}
-
 	InfoLog.Println("Listening and serving :8000")
 	ErrorLog.Fatal(server.ListenAndServe())
 }
