@@ -2,6 +2,7 @@ package models
 
 import "time"
 
+// Usser model.
 type User struct {
 	ID             *int
 	FirstName      *string
@@ -17,21 +18,25 @@ type User struct {
 	OrderStatus    []Order
 }
 
+// Products available in store.
 type Product struct {
 	ProductID   *int
 	ProductName *string
 	Price       *uint64
 	Rating      *uint8
-	Image       *string //wil hold url
+	Image       *string
 }
+
+// Produts associated with the user(like ordered product)
 type UserProducts struct {
 	ProductID   *int
-	productName *string
+	ProductName *string
 	Price       int
 	Rating      *uint
 	Image       *string
 }
 
+// user's address details.
 type Address struct {
 	AddressID  *int
 	HouseNo    *string
@@ -40,6 +45,7 @@ type Address struct {
 	PostalCode *string
 }
 
+// Oorder model
 type Order struct {
 	OrderID       *int
 	OrderCart     []UserProducts
@@ -49,7 +55,8 @@ type Order struct {
 	PaymentMethod Payment
 }
 
+// payment method for an order, indicating whether electronic payment or cash was used.
 type Payment struct {
-	EPayment bool
-	Cash     bool
+	EletronicPayment bool
+	Cash             bool
 }
