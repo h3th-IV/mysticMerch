@@ -15,7 +15,7 @@ type User struct {
 	ID             *int           `json:"id"`
 	FirstName      *string        `json:"firstName" validate:"required,min=2,max=50"`
 	LastName       *string        `json:"lastName" validate:"required,min=2,max=50"`
-	PasswordHash   *string        `json:"passwordHash"`
+	Password       *string        `json:"password"`
 	Email          *string        `json:"email" validate:"required,email"`
 	PhoneNumber    *string        `json:"phoneNumber" validate:"required"`
 	CreatedAt      time.Time      `json:"createdAt"`
