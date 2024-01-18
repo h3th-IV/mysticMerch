@@ -12,7 +12,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // signUp post form Hadler
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "SignUP was succesfull")
+	fmt.Fprintln(w, "Signup was succesfull")
 }
 
 // Login Post Handler

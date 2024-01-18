@@ -1,0 +1,14 @@
+--internal
+    | --database
+        |--init.go
+    | --models
+        | --models.go
+    | --server
+        | --admin_routes.go
+        | --products_routes.go
+        | --user_routes.go
+        | --server.go
+    | --utils
+        | --utils.go
+    | --api
+        | --handlers.go

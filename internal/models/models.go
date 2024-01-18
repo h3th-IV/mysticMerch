@@ -1,62 +1,70 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
+
+// struct for the marketplace
+type MarketModel struct {
+	DB *sql.DB
+}
 
 // Usser model.
 type User struct {
-	ID             *int
-	FirstName      *string
-	LastName       *string
-	PasswordHash   *string
-	Email          *string
-	PhoneNumber    *string
-	CreatedAt      time.Time
-	UpdatedAt      time.Ticker
-	UserID         string
-	UserCart       []UserProducts
-	AddressDetails []Address
-	OrderStatus    []Order
+	ID             *int           `json:"id"`
+	FirstName      *string        `json:"firstName" validate:"required,min=2,max=50"`
+	LastName       *string        `json:"lastName" validate:"required,min=2,max=50"`
+	PasswordHash   *string        `json:"passwordHash"`
+	Email          *string        `json:"email" validate:"required,email"`
+	PhoneNumber    *string        `json:"phoneNumber" validate:"required"`
+	CreatedAt      time.Time      `json:"createdAt"`
+	UpdatedAt      time.Ticker    `json:"updatedAt"`
+	UserID         string         `json:"userId"`
+	UserCart       []UserProducts `json:"userCart"`
+	AddressDetails []Address      `json:"addressDetails"`
+	OrderStatus    []Order        `json:"orderStatus"`
 }
 
 // Products available in store.
 type Product struct {
-	ProductID   *int
-	ProductName *string
-	Price       *uint64
-	Rating      *uint8
-	Image       *string
+	ProductID   *int    `json:"productId"`
+	ProductName *string `json:"productName"`
+	Price       *uint64 `json:"price"`
+	Rating      *uint8  `json:"rating"`
+	Image       *string `json:"image"`
 }
 
 // Produts associated with the user(like ordered product)
 type UserProducts struct {
-	ProductID   *int
-	ProductName *string
-	Price       int
-	Rating      *uint
-	Image       *string
+	ProductID   *int    `json:"productId"`
+	ProductName *string `json:"productName"`
+	Price       int     `json:"price"`
+	Rating      *uint   `json:"rating"`
+	Image       *string `json:"image"`
 }
 
 // user's address details.
 type Address struct {
-	AddressID  *int
-	HouseNo    *string
-	Street     *string
-	City       *string
-	PostalCode *string
+	AddressID  *int    `json:"addressId"`
+	HouseNo    *string `json:"houseNo"`
+	Street     *string `json:"street"`
+	City       *string `json:"city"`
+	PostalCode *string `json:"postalCode"`
 }
 
 // Oorder model
 type Order struct {
-	OrderID       *int
-	OrderCart     []UserProducts
-	OrderedAt     time.Time
-	Price         *int
-	Discount      *int
-	PaymentMethod Payment
+	OrderID       *int           `json:"orderId"`
+	OrderCart     []UserProducts `json:"orderCart"`
+	OrderedAt     time.Time      `json:"orderAt"`
+	Price         *int           `json:"orderPrice"`
+	Discount      *int           `json:"discount"`
+	PaymentMethod Payment        `json:"paymentType"`
 }
 
 // payment method for an order, indicating whether electronic payment or cash was used.
 type Payment struct {
-	EletronicPayment bool
-	Cash             bool
+	EletronicPayment bool `json:"electronicPayment"`
+	Cash             bool `json:"cash"`
 }
