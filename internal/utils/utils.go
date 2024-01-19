@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Logger represents a custom logger.
@@ -38,4 +40,13 @@ func RequestLogger(next http.Handler) http.Handler {
 		logger.LogInfo(fmt.Sprintf("%v - %v %v %v", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI()))
 		next.ServeHTTP(w, r)
 	})
+}
+
+// func HashPassword
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
+	if err != nil {
+		return "", nil
+	}
+	return string(hash), nil
 }

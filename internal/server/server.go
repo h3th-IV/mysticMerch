@@ -6,14 +6,14 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/api"
-	"github.com/h3th-IV/mysticMerch/internal/models"
+	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 	"github.com/justinas/alice"
 )
 
 // struct for the Apllication related configuration
 type MarketPlace struct {
-	databox *models.MarketModel
+	databox *database.MarketModel
 }
 
 func Routes() {
@@ -23,7 +23,6 @@ func Routes() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", api.Home)
-	router.HandleFunc("/user/signup", api.SignUp)
 
 	//set Admin related routes
 	SetAdminRoutes(router)
@@ -33,6 +32,9 @@ func Routes() {
 
 	//set Product realted routes
 	SetProductRoutes(router)
+
+	//set Cart routes
+	SetCartRoutes(router)
 
 	router.Use(middlewareChain.Then)
 	server := &http.Server{

@@ -8,10 +8,20 @@ import (
 func SetProductRoutes(router *mux.Router) {
 	ProductRoutes := router.PathPrefix("/products").Subrouter()
 
-	ProductRoutes.HandleFunc("/viewall", api.ViewProducts)
-	ProductRoutes.HandleFunc("/search/{query:[tbb]}", api.SearchProduct)
-	ProductRoutes.HandleFunc("/cart", api.UserCart)     //will require authentication MW
-	ProductRoutes.HandleFunc("/additem", api.AddtoCart) //will require authentication MW
-	ProductRoutes.HandleFunc("/removeitem", api.RemovefromCart)
+	ProductRoutes.HandleFunc("/{id:[0-9]+}", api.ViewProducts)
+	ProductRoutes.HandleFunc("/search", api.SearchProduct)
 
+}
+
+func SetCartRoutes(router *mux.Router) {
+	CartProdcts := router.PathPrefix("/carts").Subrouter()
+
+	//cart operations //will require authentication MW
+	CartProdcts.HandleFunc("/cart", api.UserCart)
+	CartProdcts.HandleFunc("/additem", api.AddtoCart)
+	CartProdcts.HandleFunc("/removeitem", api.RemovefromCart)
+	CartProdcts.HandleFunc("/itemdetails", api.UpdateProductDetails)
+	CartProdcts.HandleFunc("/items", api.GetItemFromCart) //with request query
+	CartProdcts.HandleFunc("checkout", api.BuyFromCart)
+	CartProdcts.HandleFunc("/buy", api.InstantBuy)
 }

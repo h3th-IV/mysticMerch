@@ -1,4 +1,4 @@
-package models
+package database
 
 import (
 	"database/sql"
@@ -8,6 +8,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
+
+type MarketModel struct {
+	DB *sql.DB
+}
 
 func InitDB() (*sql.DB, error) {
 	//logger package
@@ -33,4 +37,14 @@ func InitDB() (*sql.DB, error) {
 	return database, nil
 }
 
-//closeDB function
+// CloseDB function
+func (m *MarketModel) CloseDB() error {
+	if m.DB != nil {
+		err := m.DB.Close()
+		if err != nil {
+			return err
+		}
+	}
+	fmt.Println("Connection to Database Closed succesfully")
+	return nil
+}

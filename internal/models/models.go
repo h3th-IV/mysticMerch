@@ -1,14 +1,10 @@
 package models
 
 import (
-	"database/sql"
 	"time"
 )
 
 // struct for the marketplace
-type MarketModel struct {
-	DB *sql.DB
-}
 
 // Usser model.
 type User struct {
@@ -42,6 +38,9 @@ type UserProducts struct {
 	Price       int     `json:"price"`
 	Rating      *uint   `json:"rating"`
 	Image       *string `json:"image"`
+	Quantity    *int    `json:"quantity"`
+	Color       *string `json:"color,omitempty"`
+	Size        *string `json:"size,omitempty"`
 }
 
 // user's address details.
