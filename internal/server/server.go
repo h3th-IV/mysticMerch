@@ -13,7 +13,8 @@ import (
 
 // struct for the Apllication related configuration
 type MarketPlace struct {
-	databox *database.MarketModel
+	Userbox    *database.UserModel
+	Productbox *database.ProductModel
 }
 
 func Routes() {

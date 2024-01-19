@@ -1,11 +1,13 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -50,3 +52,12 @@ func HashPassword(password string) (string, error) {
 	}
 	return string(hash), nil
 }
+
+var (
+	ErrNoRecord = errors.New("err: no matching record found")
+
+	ErrInvalidCredentials = errors.New("err: invalid credentials")
+
+	ErrExsistingCrednetials = errors.New("err: dupliacte Credentials")
+	MySQLErr                *mysql.MySQLError
+)

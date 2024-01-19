@@ -21,7 +21,7 @@ func SetCartRoutes(router *mux.Router) {
 	CartProdcts.HandleFunc("/additem", api.AddtoCart)
 	CartProdcts.HandleFunc("/removeitem", api.RemovefromCart)
 	CartProdcts.HandleFunc("/itemdetails", api.UpdateProductDetails)
-	CartProdcts.HandleFunc("/items", api.GetItemFromCart) //with request query
+	CartProdcts.HandleFunc("/item", api.GetItemFromCart) //with request query
 	CartProdcts.HandleFunc("checkout", api.BuyFromCart)
 	CartProdcts.HandleFunc("/buy", api.InstantBuy)
 }

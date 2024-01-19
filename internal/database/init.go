@@ -9,10 +9,6 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
-type MarketModel struct {
-	DB *sql.DB
-}
-
 func InitDB() (*sql.DB, error) {
 	//logger package
 	logger := utils.NewLogger(os.Stdout, os.Stderr)
@@ -38,7 +34,7 @@ func InitDB() (*sql.DB, error) {
 }
 
 // CloseDB function
-func (m *MarketModel) CloseDB() error {
+func (m *UserModel) CloseDB() error {
 	if m.DB != nil {
 		err := m.DB.Close()
 		if err != nil {
