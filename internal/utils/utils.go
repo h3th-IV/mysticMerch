@@ -6,9 +6,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"runtime/debug"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/h3th-IV/mysticMerch/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -85,4 +87,9 @@ func ServerError(w http.ResponseWriter, err error) {
 	//write output for logging event 2 step backwards
 	logger.ErrLogger.Output(2, errTrace)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+}
+
+func ValidateSignUpDetails(details *models.ValidAta) {
+	email := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	password := regexp.MustCompile()
 }

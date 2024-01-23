@@ -91,3 +91,8 @@ type Payment struct {
 	EletronicPayment bool `json:"electronicPayment"`
 	Cash             bool `json:"cash"`
 }
+
+type ValidAta struct {
+	Value *string
+	Valid *string
+}

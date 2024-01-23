@@ -14,6 +14,7 @@ type UserModel struct {
 	DB *sql.DB
 }
 
+// create new user in dB
 func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, UserID string) error {
 	passwordHash, err := utils.HashPassword(password)
 	if err != nil {
@@ -44,7 +45,9 @@ func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, User
 		}
 		return err
 	}
-	tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
 	return nil
 }
 
