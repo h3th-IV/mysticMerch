@@ -20,7 +20,7 @@ type MarketPlace struct {
 func Routes() {
 	logger := utils.NewLogger(os.Stdout, os.Stderr)
 	//use alice to package potential middleware
-	middlewareChain := alice.New(utils.RequestLogger)
+	middlewareChain := alice.New(utils.RequestLogger, utils.RecoverPanic)
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", api.Home)

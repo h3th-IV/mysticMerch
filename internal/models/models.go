@@ -28,11 +28,20 @@ type User struct {
 
 // Products available in store.
 type Product struct {
-	ProductID   *int64    `json:"productId"`
+	ProductID   *int64  `json:"productId"`
 	ProductName *string `json:"productName"`
 	Description *string `json:"description"`
 	Price       *uint64 `json:"price"`
 	Rating      *uint8  `json:"rating"`
+	Image       *string `json:"image"`
+}
+
+// simplified product for API response
+type ResponseProduct struct {
+	ProductName *string `json:"productName"`
+	Description *string `json:"description"`
+	Price       *string `json:"price"`
+	Rating      *string `json:"rating"`
 	Image       *string `json:"image"`
 }
 
@@ -46,6 +55,17 @@ type UserProducts struct {
 	Quantity    *int    `json:"quantity"`
 	Color       *string `json:"color,omitempty"`
 	Size        *string `json:"size,omitempty"`
+}
+
+// simplified cartProducts for API response
+type ResponseCartProducts struct {
+	ProductName *string `json:"productName"`
+	Price       *int    `json:"price"`
+	Rating      *uint   `json:"rating"`
+	Image       *string `json:"image"`
+	Quantity    *int    `json:"quantity"`
+	Color       *string `json:"color,omitempty"`
+	Size        *string `json:"sze,omitempty"`
 }
 
 // Oorder model

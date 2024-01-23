@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 
 	"github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
@@ -61,3 +62,27 @@ var (
 	ErrExsistingCrednetials = errors.New("err: dupliacte Credentials")
 	MySQLErr                *mysql.MySQLError
 )
+
+// recover panic
+func RecoverPanic(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				//if panic close connection
+				w.Header().Set("Connection", "Close")
+				//write internal server error
+				ServerError(w, fmt.Errorf("%v", err))
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// used for all internal server Error
+func ServerError(w http.ResponseWriter, err error) {
+	logger := NewLogger(os.Stdout, os.Stderr)
+	errTrace := fmt.Sprintf("%v\n%v", err.Error(), debug.Stack())
+	//write output for logging event 2 step backwards
+	logger.ErrLogger.Output(2, errTrace)
+	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+}

@@ -20,6 +20,7 @@ func (pm *ProductModel) AddProduct(name, description, price, image string) (int6
 	if err != nil {
 		return 0, err
 	}
+	defer tx.Rollback()
 
 	stmt, err := tx.Prepare(query)
 	if err != nil {
@@ -34,41 +35,80 @@ func (pm *ProductModel) AddProduct(name, description, price, image string) (int6
 	if err != nil {
 		return 0, err
 	}
+	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
 	return ProductId, nil
 }
 
 // get product for other Operations by Id
-func (pm *ProductModel) GetProduct(productID int) (*models.Product, error) {
-	query := `select * from products where product_id = ?`
+func (pm *ProductModel) GetProduct(productID int) (*models.ResponseProduct, error) {
+	query := `select product_name, description, price, rating,image from products where product_id = ?`
 
-	result, err := pm.DB.Query(query, productID)
+	tx, err := pm.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
-	Product := models.Product{}
-	err = result.Scan(&Product.ProductID, &Product.ProductName, &Product.Description, Product.Price, Product.Image)
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(query)
 	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	row, err := stmt.Query(productID)
+	if err != nil {
+		return nil, err
+	}
+	defer row.Close()
+	var Product models.ResponseProduct
+	if row.Next() {
+		err = row.Scan(&Product.ProductName, &Product.Description, Product.Price, Product.Image)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err := tx.Commit(); err != nil {
 		return nil, err
 	}
 	return &Product, nil
 }
 
 // search for Product by name
-func (pm *ProductModel) GetProductByName(name string) ([]*models.Product, error) {
-	query := `select * from products where product_name like ?`
-	rows, err := pm.DB.Query(query, name)
+func (pm *ProductModel) GetProductByName(name string) ([]*models.ResponseProduct, error) {
+	query := `select product_name, description, price, rating,image from products where product_name like ?`
+
+	tx, err := pm.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
 
-	var Products []*models.Product
+	//create statament
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var Products []*models.ResponseProduct
 	for rows.Next() {
-		var product *models.Product
-		err := rows.Scan(&product.ProductID, &product.ProductName, &product.Description, &product.Price, &product.Rating, &product.Image)
+		var product *models.ResponseProduct
+		err := rows.Scan(&product.ProductName, &product.Description, &product.Price, &product.Rating, &product.Image)
 		if err != nil {
 			return nil, err
 		}
 		Products = append(Products, product)
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 	return Products, nil
 }
@@ -87,33 +127,52 @@ func (pm *ProductModel) RemoveProduct(productID int) error {
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(productID)
 	if err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil
 }
 
 // cart operations
-func (pm *ProductModel) GetUserCart(userID int) ([]*models.UserProducts, error) {
-	query := `select * from carts where user_id = ?`
+func (pm *ProductModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, error) {
+	query := `select product_name, price, rating, image, quantity, color, size from carts where user_id = ?`
 
 	tx, err := pm.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
+	defer tx.Rollback()
+
 	stmt, err := tx.Prepare(query)
 	if err != nil {
 		return nil, err
 	}
+	defer stmt.Close()
+
 	rows, err := stmt.Query(userID)
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
+	var userCart []*models.ResponseCartProducts
 	for rows.Next() {
-
+		var userProducts *models.ResponseCartProducts
+		err := rows.Scan(&userProducts.ProductName, &userProducts.Price, userProducts.Rating, userProducts.Quantity, userProducts.Color, userProducts.Size)
+		if err != nil {
+			return nil, err
+		}
+		userCart = append(userCart, userProducts)
 	}
 
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+	return userCart, nil
 }
