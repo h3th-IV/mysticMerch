@@ -46,7 +46,7 @@ func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, User
 		return err
 	}
 
-	_, err = stmt.Exec(user.UserID, user.FirstName, user.LastName, passwordHash, user.Email, user.PhoneNumber)
+	_, err = stmt.Exec(user.UserID, user.FirstName, user.LastName, user.Email, user.PhoneNumber, passwordHash)
 	if err != nil {
 		//check if err is of type mysql err
 		if errors.As(err, &utils.MySQLErr) {
@@ -62,6 +62,9 @@ func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, User
 	}
 	return nil
 }
+
+// GetUserby email(i.e when logged in)
+func GetUserID(email string)
 
 // auth the user for login
 func (um *UserModel) AuthenticateUser(email, password string) (int, error) {
