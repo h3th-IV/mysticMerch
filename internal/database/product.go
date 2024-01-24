@@ -54,6 +54,38 @@ func (pm *ProductModel) AddProduct(name, description, image string, price uint64
 	return ProductId, nil
 }
 
+// viewProducts
+func (pm *ProductModel) ViewProducts() ([]*models.ResponseProduct, error) {
+	query := `select top 30 product_name, description, image, price, rating from products`
+
+	tx, err := pm.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	var Products []*models.ResponseProduct
+	for rows.Next() {
+		var product *models.ResponseProduct
+		rows.Scan(&product.ProductName, &product.Description, &product.Image, &product.Price, &product.Rating)
+		if err != nil {
+			return nil, err
+		}
+		Products = append(Products, product)
+	}
+	return Products, nil
+}
+
 // get product for other Operations by Id
 func (pm *ProductModel) GetProduct(productID int) (*models.ResponseProduct, error) {
 	query := `select product_name, description, price, rating,image from products where product_id = ?`
@@ -183,7 +215,7 @@ func (pm *ProductModel) GetUserCart(userID int) ([]*models.ResponseCartProducts,
 	var userCart []*models.ResponseCartProducts
 	for rows.Next() {
 		var userProducts *models.ResponseCartProducts
-		err := rows.Scan(&userProducts.ProductName, &userProducts.Price, userProducts.Rating, userProducts.Quantity, userProducts.Color, userProducts.Size)
+		err := rows.Scan(&userProducts.ProductName, &userProducts.Price, &userProducts.Rating, &userProducts.Quantity, &userProducts.Color, userProducts.Size)
 		if err != nil {
 			return nil, err
 		}
