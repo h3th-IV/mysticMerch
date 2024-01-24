@@ -14,11 +14,11 @@ type ProductModel struct {
 func NewProduct(name, description, image string, price uint64) *models.Product {
 	uuid, _ := utils.GenerateUUID("product")
 	return &models.Product{
+		ProductID:   &uuid,
 		ProductName: &name,
 		Description: &description,
-		Price:       &price,
-		ProductID:   &uuid,
 		Image:       &image,
+		Price:       &price,
 		Rating:      uint8(0),
 	}
 }
@@ -27,7 +27,7 @@ func NewProduct(name, description, image string, price uint64) *models.Product {
 func (pm *ProductModel) AddProduct(name, description, image string, price uint64) (int64, error) {
 	//set ratings to 0 initiallu
 	product := NewProduct(name, description, image, price)
-	query := `insert into products(product_name, description, price, rating, image) values(?, ?, ?, ?, ?)`
+	query := `insert into products(product_id, product_name, description, image, price, rating) values(?, ?, ?, ?, ?)`
 
 	tx, err := pm.DB.Begin()
 	if err != nil {
@@ -40,7 +40,7 @@ func (pm *ProductModel) AddProduct(name, description, image string, price uint64
 		return 0, err
 	}
 
-	result, err := stmt.Exec(name, description, price, rating, image)
+	result, err := stmt.Exec(product.ProductID, product.ProductName, product.Description, product.Image, product.Price, product.Rating)
 	if err != nil {
 		return 0, err
 	}

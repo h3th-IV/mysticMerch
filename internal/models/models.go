@@ -15,12 +15,12 @@ import (
 */
 // Usser model.
 type User struct {
-	ID           *int        `json:"id"` //db auto increment
+	ID           *int        `json:"id"`     //db auto increment
+	UserID       string      `json:"userId"` //uuid
 	FirstName    *string     `json:"firstName" validate:"required,min=2,max=50"`
 	LastName     *string     `json:"lastName" validate:"required,min=2,max=50"`
 	Email        *string     `json:"email" validate:"required,email"`
 	PhoneNumber  *string     `json:"phoneNumber" validate:"required"`
-	UserID       string      `json:"userId"` //uuid
 	PasswordHash []byte      `json:"password"`
 	CreatedAt    time.Time   `json:"createdAt"`
 	UpdatedAt    time.Ticker `json:"updatedAt"`
@@ -28,11 +28,11 @@ type User struct {
 
 // Products available in store.
 type Product struct {
-	ID          *int    `json:"id"` //auto increment
+	ID          *int    `json:"id"`        //auto increment
+	ProductID   *string `json:"productId"` //for non db ops
 	ProductName *string `json:"productName"`
 	Description *string `json:"description"`
 	Image       *string `json:"image"`
-	ProductID   *string `json:"productId"`
 	Price       *uint64 `json:"price"`
 	Rating      uint8   `json:"rating"`
 	//uuid
