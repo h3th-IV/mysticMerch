@@ -10,6 +10,7 @@ import (
 	"runtime/debug"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -89,7 +90,46 @@ func ServerError(w http.ResponseWriter, err error) {
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
-func ValidateSignUpDetails(details *models.ValidAta) {
+func ValidateSignUpDetails(details []models.ValidAta) bool {
 	email := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	password := regexp.MustCompile()
+	password := regexp.MustCompile("^[a-zA-Z0-9!@#$%^&*()-_=+{}[]|;:'\",.<>?/`~]{8,15}$")
+	fName := regexp.MustCompile("^[A-Za-z]+$")
+	lName := regexp.MustCompile("^[A-Za-z]+$")
+
+	for i := 0; i < len(details); i++ {
+		switch details[i].Validator {
+		case "email":
+			if !email.MatchString(details[i].Value) {
+				return false
+			}
+		case "password":
+			if !password.MatchString(details[i].Value) {
+				return false
+			}
+		case "fName":
+			if !fName.MatchString(details[i].Value) {
+				return false
+			}
+		case "lName":
+			if !lName.MatchString(details[i].Value) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func GenerateUUID(e string) (string, error) {
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
+	uuid := id.String()
+	switch e {
+	case "user":
+		uuid = "usr" + uuid
+	case "product":
+		uuid = "prd" + uuid
+	}
+	return uuid, nil
 }

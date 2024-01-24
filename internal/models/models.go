@@ -15,25 +15,27 @@ import (
 */
 // Usser model.
 type User struct {
-	ID           *int        `json:"id"`
+	ID           *int        `json:"id"` //db auto increment
 	FirstName    *string     `json:"firstName" validate:"required,min=2,max=50"`
 	LastName     *string     `json:"lastName" validate:"required,min=2,max=50"`
-	PasswordHash []byte      `json:"password"`
 	Email        *string     `json:"email" validate:"required,email"`
 	PhoneNumber  *string     `json:"phoneNumber" validate:"required"`
+	UserID       string      `json:"userId"` //uuid
+	PasswordHash []byte      `json:"password"`
 	CreatedAt    time.Time   `json:"createdAt"`
 	UpdatedAt    time.Ticker `json:"updatedAt"`
-	UserID       string      `json:"userId"`
 }
 
 // Products available in store.
 type Product struct {
-	ProductID   *int64  `json:"productId"`
+	ID          *int    `json:"id"` //auto increment
 	ProductName *string `json:"productName"`
 	Description *string `json:"description"`
-	Price       *uint64 `json:"price"`
-	Rating      *uint8  `json:"rating"`
 	Image       *string `json:"image"`
+	ProductID   *string `json:"productId"`
+	Price       *uint64 `json:"price"`
+	Rating      uint8   `json:"rating"`
+	//uuid
 }
 
 // simplified product for API response
@@ -93,6 +95,6 @@ type Payment struct {
 }
 
 type ValidAta struct {
-	Value *string
-	Valid *string
+	Value     string
+	Validator string
 }

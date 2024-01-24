@@ -4,16 +4,29 @@ import (
 	"database/sql"
 
 	"github.com/h3th-IV/mysticMerch/internal/models"
+	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
 type ProductModel struct {
 	DB *sql.DB
 }
 
+func NewProduct(name, description, image string, price uint64) *models.Product {
+	uuid, _ := utils.GenerateUUID("product")
+	return &models.Product{
+		ProductName: &name,
+		Description: &description,
+		Price:       &price,
+		ProductID:   &uuid,
+		Image:       &image,
+		Rating:      uint8(0),
+	}
+}
+
 // add new product by admin
-func (pm *ProductModel) AddProduct(name, description, price, image string) (int64, error) {
+func (pm *ProductModel) AddProduct(name, description, image string, price uint64) (int64, error) {
 	//set ratings to 0 initiallu
-	rating := 0
+	product := NewProduct(name, description, image, price)
 	query := `insert into products(product_name, description, price, rating, image) values(?, ?, ?, ?, ?)`
 
 	tx, err := pm.DB.Begin()
@@ -139,6 +152,12 @@ func (pm *ProductModel) RemoveProduct(productID int) error {
 	return nil
 }
 
+// add product to user cart
+func (pm *ProductModel) AddProductoCart(userID int) error {
+
+	return nil
+}
+
 // cart operations
 func (pm *ProductModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, error) {
 	query := `select product_name, price, rating, image, quantity, color, size from carts where user_id = ?`
@@ -175,4 +194,23 @@ func (pm *ProductModel) GetUserCart(userID int) ([]*models.ResponseCartProducts,
 		return nil, err
 	}
 	return userCart, nil
+}
+
+// AddProductToCart adds a product to the user's cart.
+func (pm *ProductModel) AddProductToCart(userID, productID int, productName string, price, rating int, image string, quantity int, color, size string) error {
+	// Assuming pm.DB is a valid *sql.DB connection
+
+	// Create the SQL query with placeholders
+	query := `
+		INSERT INTO carts (user_id, product_id, product_name, price, rating, image, quantity, color, size)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`
+
+	// Execute the SQL query with the provided parameters
+	_, err := pm.DB.Exec(query, userID, productID, productName, price, rating, image, quantity, color, size)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

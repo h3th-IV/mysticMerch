@@ -3,6 +3,9 @@ package api
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/h3th-IV/mysticMerch/internal/models"
+	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
 // home Handler
@@ -12,7 +15,23 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Signup was succesfull")
+	err := r.ParseForm()
+	if err != nil{
+		utils.ServerError(w, err)
+	}
+
+	firstName := r.FormValue("firstName")
+	lastName := r.FormValue("lastName")
+	email := r.FormValue("email")
+	passowrd := r.FormValue("password")
+	pohneNumber := r.FormValue("phoneNumber")
+
+	validDate := utils.ValidateSignUpDetails([]models.ValidAta{
+		{Value: firstName, Validator: "fName"},
+		{Value: lastName, Validator: ""}
+	})
+
+	
 }
 
 // Login Post Handler ##

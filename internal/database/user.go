@@ -14,13 +14,25 @@ type UserModel struct {
 	DB *sql.DB
 }
 
+func NewUser(firstName, lastName, email, phoneNumber string) *models.User {
+	uuid, _ := utils.GenerateUUID("user")
+	return &models.User{
+		UserID:      uuid,
+		FirstName:   &firstName,
+		LastName:    &lastName,
+		Email:       &email,
+		PhoneNumber: &phoneNumber,
+	}
+}
+
 // create new user in dB
 func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, UserID string) error {
+	user := NewUser(fname, lname, email, phoneNumber)
 	passwordHash, err := utils.HashPassword(password)
 	if err != nil {
 		return err
 	}
-	query := `insert into users(first_name, last_name, password_hash, email, phone_number, user_id) values(?, ?, ?, ?, ?, ?)`
+	query := `insert into users(user_id, first_name, last_name, email, phone_number, password_hash) values(?, ?, ?, ?, ?, ?)`
 
 	tx, err := um.DB.Begin()
 	if err != nil {
@@ -34,7 +46,7 @@ func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, User
 		return err
 	}
 
-	_, err = stmt.Exec(fname, lname, passwordHash, email, phoneNumber, UserID)
+	_, err = stmt.Exec(user.UserID, user.FirstName, user.LastName, passwordHash, user.Email, user.PhoneNumber)
 	if err != nil {
 		//check if err is of type mysql err
 		if errors.As(err, &utils.MySQLErr) {
@@ -112,3 +124,5 @@ func (um *UserModel) RemoveUser(user_id int) error {
 	}
 	return nil
 }
+
+func (um *UserModel) AddUserAddress(UserId int)
