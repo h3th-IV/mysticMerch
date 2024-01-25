@@ -14,9 +14,15 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func NewUser(firstName, lastName, email, phoneNumber, password string) *models.User {
-	uuid, _ := utils.GenerateUUID("user")
-	passwordHash, _ := utils.HashPassword(password)
+func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.User, error) {
+	uuid, err := utils.GenerateUUID("user")
+	if err != nil {
+		return nil, err
+	}
+	passwordHash, err := utils.HashPassword(password)
+	if err != nil {
+		return nil, err
+	}
 	hashed := string(passwordHash)
 
 	return &models.User{
@@ -26,12 +32,15 @@ func NewUser(firstName, lastName, email, phoneNumber, password string) *models.U
 		Email:       &email,
 		PhoneNumber: &phoneNumber,
 		Password:    hashed,
-	}
+	}, nil
 }
 
 // create new user in dB
-func (um *UserModel) InsertUser(fname, lname, email, phoneNumber, UserID, password string) error {
-	user := NewUser(fname, lname, email, phoneNumber, password)
+func (um *UserModel) InsertUser(fname, lname, email, phoneNumber, password string) error {
+	user, err := NewUser(fname, lname, email, phoneNumber, password)
+	if err != nil {
+		return err
+	}
 	query := `insert into users(user_id, first_name, last_name, email, phone_number, password_hash) values(?, ?, ?, ?, ?, ?)`
 
 	tx, err := um.DB.Begin()

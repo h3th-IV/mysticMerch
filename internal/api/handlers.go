@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
@@ -24,18 +25,26 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	lastName := r.FormValue("lastName")
 	email := r.FormValue("email")
 	passowrd := r.FormValue("password")
-	pohneNumber := r.FormValue("phoneNumber")
+	phoneNumber := r.FormValue("phoneNumber")
 
+	//validate user input as w don't trust user input
 	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{
 		{Value: firstName, Validator: "fName"},
 		{Value: lastName, Validator: "lName"},
 		{Value: email, Validator: "email"},
 		{Value: passowrd, Validator: "password"},
 	})
-	if isDetailsValid {
-
+	if !isDetailsValid {
+		http.Error(w, "Invalid User Input", http.StatusBadRequest)
 	}
-
+	var res string
+	var userDB *database.UserModel
+	err = userDB.InsertUser(firstName, lastName, email, phoneNumber, passowrd)
+	if err != nil {
+		utils.ServerError(w, err)
+		return
+	}
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 // Login Post Handler ##
