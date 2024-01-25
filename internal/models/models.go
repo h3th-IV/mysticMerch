@@ -15,15 +15,15 @@ import (
 */
 // Usser model.
 type User struct {
-	ID           *int        `json:"id"`     //db auto increment
-	UserID       string      `json:"userId"` //uuid
-	FirstName    *string     `json:"firstName" validate:"required,min=2,max=50"`
-	LastName     *string     `json:"lastName" validate:"required,min=2,max=50"`
-	Email        *string     `json:"email" validate:"required,email"`
-	PhoneNumber  *string     `json:"phoneNumber" validate:"required"`
-	PasswordHash []byte      `json:"password"`
-	CreatedAt    time.Time   `json:"createdAt"`
-	UpdatedAt    time.Ticker `json:"updatedAt"`
+	ID          *int        `json:"id"`     //db auto increment
+	UserID      string      `json:"userId"` //uuid
+	FirstName   *string     `json:"firstName" validate:"required,min=2,max=50"`
+	LastName    *string     `json:"lastName" validate:"required,min=2,max=50"`
+	Email       *string     `json:"email" validate:"required,email"`
+	PhoneNumber *string     `json:"phoneNumber" validate:"required"`
+	Password    string      `json:"password"`
+	CreatedAt   time.Time   `json:"createdAt"`
+	UpdatedAt   time.Ticker `json:"updatedAt"`
 }
 
 // Products available in store.

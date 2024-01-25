@@ -14,24 +14,24 @@ type UserModel struct {
 	DB *sql.DB
 }
 
-func NewUser(firstName, lastName, email, phoneNumber string) *models.User {
+func NewUser(firstName, lastName, email, phoneNumber, password string) *models.User {
 	uuid, _ := utils.GenerateUUID("user")
+	passwordHash, _ := utils.HashPassword(password)
+	hashed := string(passwordHash)
+
 	return &models.User{
 		UserID:      uuid,
 		FirstName:   &firstName,
 		LastName:    &lastName,
 		Email:       &email,
 		PhoneNumber: &phoneNumber,
+		Password:    hashed,
 	}
 }
 
 // create new user in dB
-func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, UserID string) error {
-	user := NewUser(fname, lname, email, phoneNumber)
-	passwordHash, err := utils.HashPassword(password)
-	if err != nil {
-		return err
-	}
+func (um *UserModel) InsertUser(fname, lname, email, phoneNumber, UserID, password string) error {
+	user := NewUser(fname, lname, email, phoneNumber, password)
 	query := `insert into users(user_id, first_name, last_name, email, phone_number, password_hash) values(?, ?, ?, ?, ?, ?)`
 
 	tx, err := um.DB.Begin()
@@ -46,7 +46,7 @@ func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, User
 		return err
 	}
 
-	_, err = stmt.Exec(user.UserID, user.FirstName, user.LastName, user.Email, user.PhoneNumber, passwordHash)
+	_, err = stmt.Exec(user.UserID, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password)
 	if err != nil {
 		//check if err is of type mysql err
 		if errors.As(err, &utils.MySQLErr) {
@@ -103,7 +103,7 @@ func (um *UserModel) AuthenticateUser(email, password string) (*models.User, err
 	}
 	defer stmt.Close()
 	user := models.User{}
-	err = stmt.QueryRow(email).Scan(&user.ID, &user.UserID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.PasswordHash)
+	err = stmt.QueryRow(email).Scan(&user.ID, &user.UserID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, utils.ErrInvalidCredentials
@@ -112,7 +112,7 @@ func (um *UserModel) AuthenticateUser(email, password string) (*models.User, err
 		}
 	}
 
-	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 			return nil, utils.ErrInvalidCredentials
