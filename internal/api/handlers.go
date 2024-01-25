@@ -9,6 +9,13 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
+var (
+	db, err = database.InitDB()
+	data    = database.DBModel{
+		DB: db,
+	}
+)
+
 // home Handler
 func Home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Welcome to MysticeMerch")
@@ -16,6 +23,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
+	defer data.CloseDB()
 	err := r.ParseForm()
 	if err != nil {
 		utils.ServerError(w, err)
@@ -37,9 +45,8 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	if !isDetailsValid {
 		http.Error(w, "Invalid User Input", http.StatusBadRequest)
 	}
-	var res string
-	var userDB *database.UserModel
-	err = userDB.InsertUser(firstName, lastName, email, phoneNumber, passowrd)
+
+	err = data.InsertUser(firstName, lastName, email, phoneNumber, passowrd)
 	if err != nil {
 		utils.ServerError(w, err)
 		return
@@ -49,6 +56,17 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 // Login Post Handler ##
 func LogIn(w http.ResponseWriter, r *http.Request) {
+	defer data.CloseDB()
+	if err := r.ParseForm(); err != nil {
+		utils.ServerError(w, err)
+	}
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+	user, err := data.AuthenticateUser(email, password)
+	if err != nil {
+		utils.ServerError(w, fmt.Errorf("User"))
+	}
+
 }
 
 // Serch product by query ##

@@ -296,19 +296,3 @@ func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, erro
 	}
 	return userCart, nil
 }
-
-// AddProductToCart adds a product to the user's cart.
-func (dm DBModel) AddProductToCart(userID, productID int, productName string, price, rating int, image string, quantity int, color, size string) error {
-	// Assuming pm.DB is a valid *sql.DB connection
-
-	// Create the SQL query with placeholders
-	query := `INSERT INTO carts (user_id, product_id, product_name, price, rating, image, quantity, color, size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-
-	// Execute the SQL query with the provided parameters
-	_, err := dm.DB.Exec(query, userID, productID, productName, price, rating, image, quantity, color, size)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
