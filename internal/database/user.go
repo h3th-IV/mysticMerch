@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type UserModel struct {
+type DBModel struct {
 	DB *sql.DB
 }
 
@@ -36,7 +36,7 @@ func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.
 }
 
 // create new user in dB
-func (um *UserModel) InsertUser(fname, lname, email, phoneNumber, password string) error {
+func (um *DBModel) InsertUser(fname, lname, email, phoneNumber, password string) error {
 	user, err := NewUser(fname, lname, email, phoneNumber, password)
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func (pm *ProductModel) GetUserID(email string) (int, error) {
 }
 
 // auth the user for login
-func (um *UserModel) AuthenticateUser(email, password string) (*models.User, error) {
+func (um *DBModel) AuthenticateUser(email, password string) (*models.User, error) {
 	query := `select id, password_hash from users where email = ?`
 
 	//use transaction
@@ -137,7 +137,7 @@ func (um *UserModel) AuthenticateUser(email, password string) (*models.User, err
 }
 
 // Remove user fields --cascade set to on delete
-func (um *UserModel) RemoveUser(user_id int) error {
+func (um *DBModel) RemoveUser(user_id int) error {
 	query := `delete from users where user_id = ?`
 
 	//use db pool

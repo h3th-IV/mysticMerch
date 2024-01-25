@@ -13,7 +13,7 @@ import (
 
 // struct for the Apllication related configuration
 type MarketPlace struct {
-	Userbox    *database.UserModel
+	Userbox    *database.DBModel
 	Productbox *database.ProductModel
 }
 

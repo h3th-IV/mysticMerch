@@ -1,16 +1,11 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
-
-type ProductModel struct {
-	DB *sql.DB
-}
 
 func NewProduct(name, description, image string, price uint64) *models.Product {
 	uuid, _ := utils.GenerateUUID("product")
@@ -25,12 +20,12 @@ func NewProduct(name, description, image string, price uint64) *models.Product {
 }
 
 // add new product by admin
-func (pm *ProductModel) AddProduct(name, description, image string, price uint64) (int64, error) {
+func (dm *DBModel) AddProduct(name, description, image string, price uint64) (int64, error) {
 	//set ratings to 0 initiallu
 	product := NewProduct(name, description, image, price)
 	query := `insert into products(product_id, product_name, description, image, price, rating) values(?, ?, ?, ?, ?)`
 
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return 0, err
 	}
@@ -56,10 +51,10 @@ func (pm *ProductModel) AddProduct(name, description, image string, price uint64
 }
 
 // viewProducts
-func (pm *ProductModel) ViewProducts() ([]*models.ResponseProduct, error) {
+func (dm *DBModel) ViewProducts() ([]*models.ResponseProduct, error) {
 	query := `select top 30 product_name, description, image, price, rating from products`
 
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -88,10 +83,10 @@ func (pm *ProductModel) ViewProducts() ([]*models.ResponseProduct, error) {
 }
 
 // get product for other Operations by product uuid
-func (pm *ProductModel) GetProduct(productID string) (*models.Product, error) {
+func (dm *DBModel) GetProduct(productID string) (*models.Product, error) {
 	query := `select * from products where product_id = ?`
 
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -122,10 +117,10 @@ func (pm *ProductModel) GetProduct(productID string) (*models.Product, error) {
 }
 
 // search for Product by name
-func (pm *ProductModel) GetProductByName(name string) ([]*models.ResponseProduct, error) {
+func (dm *DBModel) GetProductByName(name string) ([]*models.ResponseProduct, error) {
 	query := `select product_name, description, price, rating,image from products where product_name like ?`
 
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -160,10 +155,10 @@ func (pm *ProductModel) GetProductByName(name string) ([]*models.ResponseProduct
 }
 
 // out of units
-func (pm *ProductModel) RemoveProduct(productID int) error {
+func (dm *DBModel) RemoveProduct(productID int) error {
 	query := `delete from products where product_id = ?`
 
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -186,17 +181,17 @@ func (pm *ProductModel) RemoveProduct(productID int) error {
 }
 
 // add product to user cart
-func (pm *ProductModel) AddProductoCart(userID, quantity int, productID, color, size string) error {
+func (dm *DBModel) AddProductoCart(userID, quantity int, productID, color, size string) error {
 	query := `insert into carts(user_id, product_id, product_name, price, rating, image, quantity, color, size) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	//retrive product info
-	product, err := pm.GetProduct(productID)
+	product, err := dm.GetProduct(productID)
 	if err != nil {
 		return err
 	}
 	if product == nil {
 		return fmt.Errorf("product with uuid, %v not found", productID)
 	}
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -216,9 +211,9 @@ func (pm *ProductModel) AddProductoCart(userID, quantity int, productID, color, 
 	return nil
 }
 
-func (pm *ProductModel) CheckProductExistInUserCart(userid int, productId string) (bool, error) {
+func (dm *DBModel) CheckProductExistInUserCart(userid int, productId string) (bool, error) {
 	query := `select count(*) from products where user_id = ? and product_id = ?`
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return false, err
 	}
@@ -235,9 +230,9 @@ func (pm *ProductModel) CheckProductExistInUserCart(userid int, productId string
 	}
 	return count > 0, nil
 }
-func (pm *ProductModel) RemoveItemfromCart(userid int, productID string) error {
+func (dm *DBModel) RemoveItemfromCart(userid int, productID string) error {
 	query := `delete from carts where user_id = ? and product = ?`
-	productChecker, err := pm.CheckProductExistInUserCart(userid, productID)
+	productChecker, err := dm.CheckProductExistInUserCart(userid, productID)
 	if err != nil {
 		return err
 	}
@@ -245,7 +240,7 @@ func (pm *ProductModel) RemoveItemfromCart(userid int, productID string) error {
 		return fmt.Errorf("product with productID %v does not exist in user's cart", productID)
 	}
 
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -265,10 +260,10 @@ func (pm *ProductModel) RemoveItemfromCart(userid int, productID string) error {
 }
 
 // cart operations
-func (pm *ProductModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, error) {
+func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, error) {
 	query := `select product_name, price, rating, image, quantity, color, size from carts where user_id = ?`
 
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -303,17 +298,14 @@ func (pm *ProductModel) GetUserCart(userID int) ([]*models.ResponseCartProducts,
 }
 
 // AddProductToCart adds a product to the user's cart.
-func (pm *ProductModel) AddProductToCart(userID, productID int, productName string, price, rating int, image string, quantity int, color, size string) error {
+func (dm DBModel) AddProductToCart(userID, productID int, productName string, price, rating int, image string, quantity int, color, size string) error {
 	// Assuming pm.DB is a valid *sql.DB connection
 
 	// Create the SQL query with placeholders
-	query := `
-		INSERT INTO carts (user_id, product_id, product_name, price, rating, image, quantity, color, size)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`
+	query := `INSERT INTO carts (user_id, product_id, product_name, price, rating, image, quantity, color, size) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
 	// Execute the SQL query with the provided parameters
-	_, err := pm.DB.Exec(query, userID, productID, productName, price, rating, image, quantity, color, size)
+	_, err := dm.DB.Exec(query, userID, productID, productName, price, rating, image, quantity, color, size)
 	if err != nil {
 		return err
 	}

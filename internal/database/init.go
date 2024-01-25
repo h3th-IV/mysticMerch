@@ -9,6 +9,10 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
+type DBModel struct {
+	DB *sql.DB
+}
+
 func InitDB() (*sql.DB, error) {
 	//logger package
 	logger := utils.NewLogger(os.Stdout, os.Stderr)
@@ -34,7 +38,7 @@ func InitDB() (*sql.DB, error) {
 }
 
 // CloseDB function
-func (m *UserModel) CloseDB() error {
+func (m *DBModel) CloseDB() error {
 	if m.DB != nil {
 		err := m.DB.Close()
 		if err != nil {
