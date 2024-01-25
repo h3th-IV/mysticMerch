@@ -8,7 +8,9 @@ import (
 	"os"
 	"regexp"
 	"runtime/debug"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/h3th-IV/mysticMerch/internal/models"
@@ -120,10 +122,12 @@ func ValidateSignUpDetails(details []models.ValidAta) bool {
 }
 
 func GenerateUUID(e string) (string, error) {
+	//generate new uuuid
 	id, err := uuid.NewRandom()
 	if err != nil {
 		return "", err
 	}
+	//convert string and add prefix
 	uuid := id.String()
 	switch e {
 	case "user":
@@ -132,4 +136,24 @@ func GenerateUUID(e string) (string, error) {
 		uuid = "prd" + uuid
 	}
 	return uuid, nil
+}
+
+func GenerateToken(user *models.User) (string, error) {
+	//load env files
+
+	//set expiry date
+	bestBefore := time.Now().Add(time.Hour / 2)
+
+	//ceate jwt tkeo
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id":  user.UserID,
+		"epx_time": bestBefore,
+	})
+
+	//generate token str
+	JWToken, err := token.SignedString([]byte(os.Getenv("MYSTIC")))
+	if err != nil {
+		return "", err
+	}
+	return JWToken, nil
 }

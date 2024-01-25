@@ -1,7 +1,8 @@
 package api
 
 import (
-	"fmt"
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/h3th-IV/mysticMerch/internal/database"
@@ -10,15 +11,20 @@ import (
 )
 
 var (
-	db, err = database.InitDB()
-	data    = database.DBModel{
+	db, _ = database.InitDB()
+	data  = database.DBModel{
 		DB: db,
 	}
 )
 
 // home Handler
 func Home(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Welcome to MysticeMerch")
+	//get some list of prduct to display on the home page
+	products, err := data.ViewProducts()
+	if err != nil {
+		utils.ServerError(w, err)
+	}
+	json.NewEncoder(w).Encode(products)
 }
 
 // signUp post form Hadler ##
@@ -64,9 +70,19 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	user, err := data.AuthenticateUser(email, password)
 	if err != nil {
-		utils.ServerError(w, fmt.Errorf("User"))
+		if errors.Is(err, utils.ErrInvalidCredentials) {
+			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+			return
+		}
+		utils.ServerError(w, err)
+		return
 	}
-
+	JWToken, err := utils.GenerateToken(user)
+	if err != nil {
+		utils.ServerError(w, err)
+	}
+	//send token to client
+	json.NewEncoder(w).Encode(JWToken)
 }
 
 // Serch product by query ##
