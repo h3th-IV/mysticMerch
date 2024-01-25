@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
@@ -87,7 +88,7 @@ func (pm *ProductModel) ViewProducts() ([]*models.ResponseProduct, error) {
 }
 
 // get product for other Operations by product uuid
-func (pm *ProductModel) GetProduct(productID int) (*models.Product, error) {
+func (pm *ProductModel) GetProduct(productID string) (*models.Product, error) {
 	query := `select * from products where product_id = ?`
 
 	tx, err := pm.DB.Begin()
@@ -185,9 +186,16 @@ func (pm *ProductModel) RemoveProduct(productID int) error {
 }
 
 // add product to user cart
-func (pm *ProductModel) AddProductoCart(userID, quantity int, productID, color string) error {
-	query := `insert into carts(user_id, product_id, product_name, price, rating, image, quantity, color, size) values(?, ?, ?, ?, ?, ?, ?)`
-
+func (pm *ProductModel) AddProductoCart(userID, quantity int, productID, color, size string) error {
+	query := `insert into carts(user_id, product_id, product_name, price, rating, image, quantity, color, size) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	//retrive product info
+	product, err := pm.GetProduct(productID)
+	if err != nil {
+		return err
+	}
+	if product == nil {
+		return fmt.Errorf("product with uuid, %v not found", productID)
+	}
 	tx, err := pm.DB.Begin()
 	if err != nil {
 		return err
@@ -198,7 +206,61 @@ func (pm *ProductModel) AddProductoCart(userID, quantity int, productID, color s
 		return err
 	}
 	defer stmt.Close()
-	stmt.Exec(userID)
+	_, err = stmt.Exec(userID, product.ProductID, product.ProductName, product.Price, product.Rating, product.Image, quantity, color, size)
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (pm *ProductModel) CheckProductExistInUserCart(userid int, productId string) (bool, error) {
+	query := `select count(*) from products where user_id = ? and product_id = ?`
+	tx, err := pm.DB.Begin()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return false, err
+	}
+	defer stmt.Close()
+	var count int
+	countErr := stmt.QueryRow(userid, productId).Scan(&count)
+	if countErr != nil {
+		return false, countErr
+	}
+	return count > 0, nil
+}
+func (pm *ProductModel) RemoveItemfromCart(userid int, productID string) error {
+	query := `delete from carts where user_id = ? and product = ?`
+	productChecker, err := pm.CheckProductExistInUserCart(userid, productID)
+	if err != nil {
+		return err
+	}
+	if !productChecker {
+		return fmt.Errorf("product with productID %v does not exist in user's cart", productID)
+	}
+
+	tx, err := pm.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(userid, productID)
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
 	return nil
 }
 
