@@ -6,15 +6,12 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/api"
-	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 	"github.com/justinas/alice"
 )
 
 // struct for the Apllication related configuration
 type MarketPlace struct {
-	Userbox    *database.DBModel
-	Productbox *database.ProductModel
 }
 
 func Routes() {

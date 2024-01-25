@@ -38,9 +38,9 @@ func InitDB() (*sql.DB, error) {
 }
 
 // CloseDB function
-func (m *DBModel) CloseDB() error {
-	if m.DB != nil {
-		err := m.DB.Close()
+func (um *DBModel) CloseDB() error {
+	if um.DB != nil {
+		err := um.DB.Close()
 		if err != nil {
 			return err
 		}

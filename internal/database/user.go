@@ -10,10 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type DBModel struct {
-	DB *sql.DB
-}
-
 func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.User, error) {
 	uuid, err := utils.GenerateUUID("user")
 	if err != nil {
@@ -36,14 +32,14 @@ func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.
 }
 
 // create new user in dB
-func (um *DBModel) InsertUser(fname, lname, email, phoneNumber, password string) error {
+func (dm *DBModel) InsertUser(fname, lname, email, phoneNumber, password string) error {
 	user, err := NewUser(fname, lname, email, phoneNumber, password)
 	if err != nil {
 		return err
 	}
 	query := `insert into users(user_id, first_name, last_name, email, phone_number, password_hash) values(?, ?, ?, ?, ?, ?)`
 
-	tx, err := um.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -73,9 +69,9 @@ func (um *DBModel) InsertUser(fname, lname, email, phoneNumber, password string)
 }
 
 // GetUserby email(i.e when logged in)
-func (pm *ProductModel) GetUserID(email string) (int, error) {
+func (dm *DBModel) GetUserID(email string) (int, error) {
 	query := `select id from users where email = ?`
-	tx, err := pm.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return 0, nil
 	}
