@@ -64,46 +64,67 @@ func (um *UserModel) InsertUser(fname, lname, password, email, phoneNumber, User
 }
 
 // GetUserby email(i.e when logged in)
-func GetUserID(email string)
+func (pm *ProductModel) GetUserID(email string) (int, error) {
+	query := `select id from users where email = ?`
+	tx, err := pm.DB.Begin()
+	if err != nil {
+		return 0, nil
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return 0, err
+	}
+	defer stmt.Close()
+	user := models.User{}
+	rowErr := stmt.QueryRow(email).Scan(&user.ID)
+	if rowErr != nil {
+		if errors.Is(rowErr, sql.ErrNoRows) {
+			return 0, rowErr
+		}
+	}
+	return *user.ID, nil
+}
 
 // auth the user for login
-func (um *UserModel) AuthenticateUser(email, password string) (int, error) {
+func (um *UserModel) AuthenticateUser(email, password string) (*models.User, error) {
 	query := `select id, password_hash from users where email = ?`
 
 	//use transaction
 	tx, err := um.DB.Begin()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer tx.Rollback()
 
 	stmt, err := tx.Prepare(query)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
+	defer stmt.Close()
 	user := models.User{}
-	err = stmt.QueryRow(email).Scan(&user.ID, &user.PasswordHash)
+	err = stmt.QueryRow(email).Scan(&user.ID, &user.UserID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.PasswordHash)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, utils.ErrInvalidCredentials
+			return nil, utils.ErrInvalidCredentials
 		} else {
-			return 0, err
+			return nil, err
 		}
 	}
 
 	err = bcrypt.CompareHashAndPassword(user.PasswordHash, []byte(password))
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			return 0, utils.ErrInvalidCredentials
+			return nil, utils.ErrInvalidCredentials
 		} else {
-			return 0, err
+			return nil, err
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return *user.ID, nil
+	return &user, nil
 }
 
 // Remove user fields --cascade set to on delete
@@ -128,4 +149,4 @@ func (um *UserModel) RemoveUser(user_id int) error {
 	return nil
 }
 
-func (um *UserModel) AddUserAddress(UserId int)
+//func (um *UserModel) AddUserAddress(UserId int)

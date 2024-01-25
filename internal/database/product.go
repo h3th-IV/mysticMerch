@@ -86,9 +86,9 @@ func (pm *ProductModel) ViewProducts() ([]*models.ResponseProduct, error) {
 	return Products, nil
 }
 
-// get product for other Operations by Id
-func (pm *ProductModel) GetProduct(productID int) (*models.ResponseProduct, error) {
-	query := `select product_name, description, price, rating,image from products where product_id = ?`
+// get product for other Operations by product uuid
+func (pm *ProductModel) GetProduct(productID int) (*models.Product, error) {
+	query := `select * from products where product_id = ?`
 
 	tx, err := pm.DB.Begin()
 	if err != nil {
@@ -107,9 +107,9 @@ func (pm *ProductModel) GetProduct(productID int) (*models.ResponseProduct, erro
 		return nil, err
 	}
 	defer row.Close()
-	var Product models.ResponseProduct
+	var Product models.Product
 	if row.Next() {
-		err = row.Scan(&Product.ProductName, &Product.Description, Product.Price, Product.Image)
+		err = row.Scan(&Product.ProductID, &Product.ProductName, &Product.Description, &Product.Price, &Product.Image)
 		if err != nil {
 			return nil, err
 		}
@@ -185,8 +185,20 @@ func (pm *ProductModel) RemoveProduct(productID int) error {
 }
 
 // add product to user cart
-func (pm *ProductModel) AddProductoCart(userID int) error {
+func (pm *ProductModel) AddProductoCart(userID, quantity int, productID, color string) error {
+	query := `insert into carts(user_id, product_id, product_name, price, rating, image, quantity, color, size) values(?, ?, ?, ?, ?, ?, ?)`
 
+	tx, err := pm.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	stmt.Exec(userID)
 	return nil
 }
 

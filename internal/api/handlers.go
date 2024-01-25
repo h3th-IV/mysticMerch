@@ -16,7 +16,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
-	if err != nil{
+	if err != nil {
 		utils.ServerError(w, err)
 	}
 
@@ -26,12 +26,16 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	passowrd := r.FormValue("password")
 	pohneNumber := r.FormValue("phoneNumber")
 
-	validDate := utils.ValidateSignUpDetails([]models.ValidAta{
+	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{
 		{Value: firstName, Validator: "fName"},
-		{Value: lastName, Validator: ""}
+		{Value: lastName, Validator: "lName"},
+		{Value: email, Validator: "email"},
+		{Value: passowrd, Validator: "password"},
 	})
+	if isDetailsValid {
 
-	
+	}
+
 }
 
 // Login Post Handler ##

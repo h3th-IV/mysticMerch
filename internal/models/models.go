@@ -29,13 +29,12 @@ type User struct {
 // Products available in store.
 type Product struct {
 	ID          *int    `json:"id"`        //auto increment
-	ProductID   *string `json:"productId"` //for non db ops
+	ProductID   *string `json:"productId"` //for non db ops uuid generated
 	ProductName *string `json:"productName"`
 	Description *string `json:"description"`
 	Image       *string `json:"image"`
 	Price       *uint64 `json:"price"`
 	Rating      uint8   `json:"rating"`
-	//uuid
 }
 
 // simplified product for API response
