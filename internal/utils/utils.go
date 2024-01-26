@@ -14,6 +14,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/h3th-IV/mysticMerch/internal/models"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -39,6 +40,15 @@ func (l *Logger) LogInfo(message string) {
 // LogError logs an error message.
 func (l *Logger) LogError(message string) {
 	l.ErrLogger.Println(message)
+}
+
+// Load env variables
+func LoadEnv() error {
+	err := godotenv.Load()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // Middleware to log requests to the server
@@ -68,7 +78,7 @@ var (
 	MySQLErr                *mysql.MySQLError
 )
 
-// recover panic
+// Middleware to recover panic
 func RecoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -78,6 +88,28 @@ func RecoverPanic(next http.Handler) http.Handler {
 				//write internal server error
 				ServerError(w, fmt.Errorf("%v", err))
 			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Middleware to Auth specific routes
+func AuthRoutes(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := LoadEnv(); err != nil {
+				return
+			}
+			//get JWToken from request
+			JWToken := r.Header.Get("Authorization")
+			token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
+				return []byte(os.Getenv("MYSTIC")), nil
+			})
+
+			if err != nil || !token.Valid {
+				http.Error(w, "Unauthorized Operation", http.StatusUnauthorized)
+			}
+
 		}()
 		next.ServeHTTP(w, r)
 	})
@@ -140,7 +172,9 @@ func GenerateUUID(e string) (string, error) {
 
 func GenerateToken(user *models.User) (string, error) {
 	//load env files
-
+	if err := LoadEnv(); err != nil {
+		return "", err
+	}
 	//set expiry date
 	bestBefore := time.Now().Add(time.Hour / 2)
 
