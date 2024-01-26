@@ -55,7 +55,7 @@ func LoadEnv() error {
 func RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := NewLogger(os.Stdout, os.Stderr)
-		logger.LogInfo(fmt.Sprintf("%v - %v %v %v", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI()))
+		logger.InfoLogger.Printf(fmt.Sprintf("%v - %v %v %v", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI()))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -176,15 +176,16 @@ func GenerateToken(user *models.User) (string, error) {
 		return "", err
 	}
 	//set expiry date
-	bestBefore := time.Now().Add(time.Hour / 2)
+	bestBefore := time.Now().Add(time.Hour * 2)
 
-	//ceate jwt tkeo
+	//ceate jwt tkeo with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":  user.UserID,
-		"epx_time": bestBefore,
+		"epx_time": bestBefore.Unix(),
+		"issuer":   os.Getenv("JWTISSUER"),
 	})
 
-	//generate token str
+	//generate token str and sign with seceret key
 	JWToken, err := token.SignedString([]byte(os.Getenv("MYSTIC")))
 	if err != nil {
 		return "", err

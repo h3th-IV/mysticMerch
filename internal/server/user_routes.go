@@ -41,10 +41,9 @@ func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
 }
 
 func SetUserRoutes(router *mux.Router) {
-	UserDB := database.InitDB()
 	UserRouter := router.PathPrefix("/user").Subrouter()
 
 	//routes for the user
-	UserRouter.HandleFunc("/signup", api.)
+	UserRouter.HandleFunc("/signup", api.SignUp)
 	UserRouter.HandleFunc("/login", api.LogIn)
 }
