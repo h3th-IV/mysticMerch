@@ -180,9 +180,9 @@ func GenerateToken(user *models.User) (string, error) {
 
 	//ceate jwt tkeo with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id":  user.UserID,
-		"epx_time": bestBefore.Unix(),
-		"issuer":   os.Getenv("JWTISSUER"),
+		"user_id": user.UserID,
+		"epx":     bestBefore.Unix(),
+		"iss":     os.Getenv("JWTISSUER"),
 	})
 
 	//generate token str and sign with seceret key

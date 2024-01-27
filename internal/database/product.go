@@ -7,8 +7,8 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
-func NewProduct(name, description, image string, price uint64) *models.Product {
-	uuid, _ := utils.GenerateUUID("product")
+func NewProduct(name, description, image string, price uint64) (*models.Product, error) {
+	uuid, err := utils.GenerateUUID("product")
 	return &models.Product{
 		ProductID:   &uuid,
 		ProductName: &name,
@@ -16,13 +16,16 @@ func NewProduct(name, description, image string, price uint64) *models.Product {
 		Image:       &image,
 		Price:       &price,
 		Rating:      uint8(0),
-	}
+	}, err
 }
 
 // add new product by admin
 func (dm *DBModel) AddProduct(name, description, image string, price uint64) (int64, error) {
 	//set ratings to 0 initiallu
-	product := NewProduct(name, description, image, price)
+	product, err := NewProduct(name, description, image, price)
+	if err != nil {
+		return 0, err
+	}
 	query := `insert into products(product_id, product_name, description, image, price, rating) values(?, ?, ?, ?, ?)`
 
 	tx, err := dm.DB.Begin()

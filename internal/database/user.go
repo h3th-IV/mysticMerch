@@ -154,4 +154,37 @@ func (um *DBModel) RemoveUser(user_id int) error {
 	return nil
 }
 
-//func (um *UserModel) AddUserAddress(UserId int)
+func NewAddress(houseNo, str, city, postalCode string) *models.Address {
+	return &models.Address{
+		HouseNo:    &houseNo,
+		Street:     &str,
+		City:       &city,
+		PostalCode: &postalCode,
+	}
+}
+
+func (um *DBModel) AddUserAddress(UserId int, houseNo, str, city, postalCode string) error {
+	adrr := NewAddress(houseNo, str, city, postalCode)
+	query := `insert into address(user_id, house_no, street, city, postal_code) values(?, ?, ?, ?, ?)`
+
+	tx, err := um.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(UserId, adrr.HouseNo, adrr.Street, adrr.City, adrr.PostalCode)
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
