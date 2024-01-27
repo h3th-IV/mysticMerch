@@ -80,11 +80,12 @@ type Order struct {
 
 // user's address details.
 type Address struct {
-	AddressID  *int    `json:"addressId"`
-	HouseNo    *string `json:"houseNo"`
-	Street     *string `json:"street"`
-	City       *string `json:"city"`
-	PostalCode *string `json:"postalCode"`
+	AddressID   *int    `json:"addressId"`
+	HouseNo     *string `json:"houseNo"`
+	Street      *string `json:"street"`
+	City        *string `json:"city"`
+	PostalCode  *string `json:"postalCode"`
+	UserPhoneNo *string `json:"phoneNumber"`
 }
 
 // payment method for an order, indicating whether electronic payment or cash was used.

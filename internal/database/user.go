@@ -133,11 +133,11 @@ func (um *DBModel) AuthenticateUser(email, password string) (*models.User, error
 }
 
 // Remove user fields --cascade set to on delete
-func (um *DBModel) RemoveUser(user_id int) error {
+func (dm *DBModel) RemoveUser(user_id int) error {
 	query := `delete from users where user_id = ?`
 
 	//use db pool
-	tx, err := um.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -154,20 +154,21 @@ func (um *DBModel) RemoveUser(user_id int) error {
 	return nil
 }
 
-func NewAddress(houseNo, str, city, postalCode string) *models.Address {
+func NewAddress(user *models.User, houseNo, str, city, postalCode string) *models.Address {
 	return &models.Address{
-		HouseNo:    &houseNo,
-		Street:     &str,
-		City:       &city,
-		PostalCode: &postalCode,
+		HouseNo:     &houseNo,
+		Street:      &str,
+		City:        &city,
+		PostalCode:  &postalCode,
+		UserPhoneNo: user.PhoneNumber,
 	}
 }
 
-func (um *DBModel) AddUserAddress(UserId int, houseNo, str, city, postalCode string) error {
-	adrr := NewAddress(houseNo, str, city, postalCode)
+func (dm *DBModel) AddUserAddress(user *models.User, houseNo, str, city, postalCode string) error {
+	adrr := NewAddress(user, houseNo, str, city, postalCode)
 	query := `insert into address(user_id, house_no, street, city, postal_code) values(?, ?, ?, ?, ?)`
 
-	tx, err := um.DB.Begin()
+	tx, err := dm.DB.Begin()
 	if err != nil {
 		return err
 	}
@@ -179,12 +180,48 @@ func (um *DBModel) AddUserAddress(UserId int, houseNo, str, city, postalCode str
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(UserId, adrr.HouseNo, adrr.Street, adrr.City, adrr.PostalCode)
+	_, err = stmt.Exec(user.ID, adrr.HouseNo, adrr.Street, adrr.City, adrr.PostalCode)
 	if err != nil {
 		return err
 	}
 	if err := tx.Commit(); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (dm *DBModel) ReturnUserAddress(user *models.User) ([]*models.Address, error) {
+	query := `select * from address where user_id = ?`
+	tx, err := dm.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query(user.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var UserAddrs []*models.Address
+	for rows.Next() {
+		var useraddr *models.Address
+		if err := rows.Scan(&useraddr.HouseNo, &useraddr.Street, &useraddr.City, &useraddr.PostalCode); err != nil {
+			return nil, err
+		}
+		UserAddrs = append(UserAddrs, useraddr)
+	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
+
+	return UserAddrs, nil
+}
+
+func (dm *DBModel) EditAddr(user *models.User) error {
 	return nil
 }
