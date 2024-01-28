@@ -1,8 +1,13 @@
 package utils
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -191,4 +196,48 @@ func GenerateToken(user *models.User) (string, error) {
 		return "", err
 	}
 	return JWToken, nil
+}
+
+func EncryptPass(password, key []byte) (string, error) {
+	//create aes block with provided key
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+	//make a cuipher text to store encrypted passwrd
+	cipherText := make([]byte, aes.BlockSize)
+	iv := cipherText[:aes.BlockSize] //prepend initialization vector to cipher slice
+	//initialization vector for randomness
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return "", err
+	}
+
+	//use cipher to create new ecncrypter stream  used to ecrypt plain text data
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(cipherText[aes.BlockSize:], password) //use stream to encrypt password
+
+	return base64.StdEncoding.EncodeToString(cipherText), nil
+}
+
+func DecryptPass(cipherText string, key []byte) (string, error) {
+	//create a new block with key
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	//decode cipherText
+	decipherText, err := base64.RawStdEncoding.DecodeString(cipherText)
+	if err != nil {
+		return "", nil
+	}
+
+	//pop initialization vector
+	iv := decipherText[:aes.BlockSize]
+	decipherText = decipherText[aes.BlockSize:]
+
+	stream := cipher.NewCFBDecrypter(block, iv)
+	stream.XORKeyStream(decipherText, decipherText)
+
+	return string(decipherText), nil
 }

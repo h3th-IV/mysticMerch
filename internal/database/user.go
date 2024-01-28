@@ -223,5 +223,20 @@ func (dm *DBModel) ReturnUserAddress(user *models.User) ([]*models.Address, erro
 }
 
 func (dm *DBModel) EditAddr(user *models.User) error {
+	query := `select * from address where user_id = ? and address_id = ?`
+
+	tx, err := dm.DB.Begin()
+	if err != nil{
+		return err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil{
+		return nil
+	}
+	defer stmt.Close()
+	if err := tx.Commit(); err != nil{
+		return err
+	}
 	return nil
 }
