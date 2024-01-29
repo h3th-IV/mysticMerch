@@ -101,6 +101,12 @@ func RecoverPanic(next http.Handler) http.Handler {
 	})
 }
 
+type mapKey string
+
+const (
+	userIDkey mapKey = "user_id"
+)
+
 // Middleware to Auth specific routes
 func AuthRoutes(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +133,7 @@ func AuthRoutes(next http.Handler) http.Handler {
 		}
 
 		//store user_id in context
-		ctx := context.WithValue(r.Context(), "user_id", userID)
+		ctx := context.WithValue(r.Context(), userIDkey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
