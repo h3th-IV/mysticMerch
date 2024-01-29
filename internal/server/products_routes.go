@@ -10,7 +10,7 @@ import (
 func SetProductRoutes(router *mux.Router) {
 	ProductRoutes := router.PathPrefix("/products").Subrouter()
 
-	ProductRoutes.HandleFunc("/{id:[a-zA-Z0-9-]+}", api.ViewProducts)
+	ProductRoutes.HandleFunc("/{id:[a-zA-Z0-9-]+}", api.ViewProduct)
 	ProductRoutes.HandleFunc("/search", api.SearchProduct).Methods(http.MethodGet).Queries("product_name")
 
 }

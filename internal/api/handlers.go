@@ -83,7 +83,9 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, err)
 	}
 	//send token to client
-	json.NewEncoder(w).Encode(JWToken)
+	if err := json.NewEncoder(w).Encode(JWToken); err != nil {
+		http.Error(w, "Unable to encode token into JSON object"+err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // Serch product by query name
@@ -102,13 +104,13 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 
 	//encode
 	if err = json.NewEncoder(w).Encode(Products); err != nil {
-		http.Error(w, "Failed to encode json item", http.StatusInternalServerError)
+		http.Error(w, "Unable to encode products into JSON:"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
 // veiw product ##
-func ViewProducts(w http.ResponseWriter, r *http.Request) {
+func ViewProduct(w http.ResponseWriter, r *http.Request) {
 	Var := mux.Vars(r)
 	Product_id := Var["id"]
 
@@ -118,22 +120,39 @@ func ViewProducts(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to Fetch Product", http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("Content-type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(Product); err != nil {
-		http.Error(w, "Failed to encode json item", http.StatusInternalServerError)
+		http.Error(w, "Unable to encode product into JSON:"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
 //Cart Operations
 
-// update product details like add quantity ##
-func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
-
-}
-
 // view user cart ##
 func UserCart(w http.ResponseWriter, r *http.Request) {
+	user_id := (r.Context().Value(utils.UserIDkey)).(string)
+	id, err := dataBase.GetUserID(user_id)
+	if err != nil {
+		http.Error(w, "err getting user_id", http.StatusBadRequest)
+		return
+	}
+
+	Products, err := dataBase.GetUserCart(id)
+	if err != nil {
+		http.Error(w, "Unable to get user cart", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(Products); err != nil {
+		http.Error(w, "Unable to encode products into JSON:"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// update product details like add quantity
+func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 
 }
 

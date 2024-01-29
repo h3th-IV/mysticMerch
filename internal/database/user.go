@@ -69,9 +69,9 @@ func (dm *DBModel) InsertUser(fname, lname, email, phoneNumber, password string)
 	return nil
 }
 
-// GetUserby email(i.e when logged in)
-func (dm *DBModel) GetUserID(email string) (int, error) {
-	query := `select id from users where email = ?`
+// GetUserby uuid(i.e when logged in)
+func (dm *DBModel) GetUserID(uuid string) (int, error) {
+	query := `select id from users where user_id = ?`
 	tx, err := dm.DB.Begin()
 	if err != nil {
 		return 0, nil
@@ -83,7 +83,7 @@ func (dm *DBModel) GetUserID(email string) (int, error) {
 	}
 	defer stmt.Close()
 	user := models.User{}
-	rowErr := stmt.QueryRow(email).Scan(&user.ID)
+	rowErr := stmt.QueryRow(uuid).Scan(&user.ID)
 	if rowErr != nil {
 		if errors.Is(rowErr, sql.ErrNoRows) {
 			return 0, rowErr
