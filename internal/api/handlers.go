@@ -5,22 +5,23 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
 var (
-	db, _ = database.InitDB()
-	data  = database.DBModel{
+	db, _    = database.InitDB()
+	dataBase = database.DBModel{
 		DB: db,
 	}
 )
 
-// home Handler
+// home Handler display a list products
 func Home(w http.ResponseWriter, r *http.Request) {
 	//get some list of prduct to display on the home page
-	products, err := data.ViewProducts()
+	products, err := dataBase.ViewProducts()
 	if err != nil {
 		utils.ServerError(w, err)
 	}
@@ -29,7 +30,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	defer data.CloseDB()
+	defer dataBase.CloseDB()
 	err := r.ParseForm()
 	if err != nil {
 		utils.ServerError(w, err)
@@ -52,7 +53,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid User Input", http.StatusBadRequest)
 	}
 
-	err = data.InsertUser(firstName, lastName, email, phoneNumber, passowrd)
+	err = dataBase.InsertUser(firstName, lastName, email, phoneNumber, passowrd)
 	if err != nil {
 		utils.ServerError(w, err)
 		return
@@ -62,13 +63,13 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 // Login Post Handler ##
 func LogIn(w http.ResponseWriter, r *http.Request) {
-	defer data.CloseDB()
+	defer dataBase.CloseDB()
 	if err := r.ParseForm(); err != nil {
 		utils.ServerError(w, err)
 	}
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	user, err := data.AuthenticateUser(email, password)
+	user, err := dataBase.AuthenticateUser(email, password)
 	if err != nil {
 		if errors.Is(err, utils.ErrInvalidCredentials) {
 			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
@@ -85,14 +86,43 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(JWToken)
 }
 
-// Serch product by query ##
+// Serch product by query name
 func SearchProduct(w http.ResponseWriter, r *http.Request) {
+	defer dataBase.CloseDB()
+	//get name from search query
+	query := r.URL.Query()
+	ProductName := query.Get("product_name")
 
+	Products, err := dataBase.GetProductByName(ProductName)
+	if err != nil {
+		http.Error(w, "Product Not Available Yet", http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	//encode
+	if err = json.NewEncoder(w).Encode(Products); err != nil {
+		http.Error(w, "Failed to encode json item", http.StatusInternalServerError)
+		return
+	}
 }
 
 // veiw product ##
 func ViewProducts(w http.ResponseWriter, r *http.Request) {
+	Var := mux.Vars(r)
+	Product_id := Var["id"]
 
+	//get by the uuid of product
+	Product, err := dataBase.GetProduct(Product_id)
+	if err != nil {
+		http.Error(w, "Failed to Fetch Product", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-type", "application/json")
+	if err := json.NewEncoder(w).Encode(Product); err != nil {
+		http.Error(w, "Failed to encode json item", http.StatusInternalServerError)
+		return
+	}
 }
 
 //Cart Operations

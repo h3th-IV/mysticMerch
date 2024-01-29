@@ -1,3 +1,4 @@
+// []TODO complete edit user adress
 package database
 
 import (
@@ -9,6 +10,7 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
+// init new user type
 func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.User, error) {
 	uuid, err := utils.GenerateUUID("user")
 	if err != nil {
@@ -153,6 +155,7 @@ func (dm *DBModel) RemoveUser(user_id int) error {
 	return nil
 }
 
+// create new address
 func NewAddress(user *models.User, houseNo, str, city, postalCode string) *models.Address {
 	return &models.Address{
 		HouseNo:     &houseNo,
@@ -163,6 +166,7 @@ func NewAddress(user *models.User, houseNo, str, city, postalCode string) *model
 	}
 }
 
+// register new address
 func (dm *DBModel) AddUserAddress(user *models.User, houseNo, str, city, postalCode string) error {
 	adrr := NewAddress(user, houseNo, str, city, postalCode)
 	query := `insert into address(user_id, house_no, street, city, postal_code) values(?, ?, ?, ?, ?)`
@@ -189,6 +193,7 @@ func (dm *DBModel) AddUserAddress(user *models.User, houseNo, str, city, postalC
 	return nil
 }
 
+// return user addresses
 func (dm *DBModel) ReturnUserAddress(user *models.User) ([]*models.Address, error) {
 	query := `select * from address where user_id = ?`
 	tx, err := dm.DB.Begin()
@@ -221,6 +226,7 @@ func (dm *DBModel) ReturnUserAddress(user *models.User) ([]*models.Address, erro
 	return UserAddrs, nil
 }
 
+// to be completed
 func (dm *DBModel) EditAddr(user *models.User) error {
 	query := `select * from address where user_id = ? and address_id = ?`
 

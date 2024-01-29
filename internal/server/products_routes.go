@@ -1,6 +1,8 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/api"
 )
@@ -8,8 +10,8 @@ import (
 func SetProductRoutes(router *mux.Router) {
 	ProductRoutes := router.PathPrefix("/products").Subrouter()
 
-	ProductRoutes.HandleFunc("/{id:[0-9]+}", api.ViewProducts)
-	ProductRoutes.HandleFunc("/search", api.SearchProduct)
+	ProductRoutes.HandleFunc("/{id:[a-zA-Z0-9-]+}", api.ViewProducts)
+	ProductRoutes.HandleFunc("/search", api.SearchProduct).Methods(http.MethodGet).Queries("product_name")
 
 }
 
