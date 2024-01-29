@@ -140,7 +140,7 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 
 	Products, err := dataBase.GetUserCart(id)
 	if err != nil {
-		http.Error(w, "Unable to get user cart", http.StatusNotFound)
+		http.Error(w, "Unable to get user's cart", http.StatusNotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -151,13 +151,13 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// update product details like add quantity
-func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
+// edit prduct ##
+func AddtoCart(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// edit prduct ##
-func AddtoCart(w http.ResponseWriter, r *http.Request) {
+// update product details like add quantity
+func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 
 }
 
