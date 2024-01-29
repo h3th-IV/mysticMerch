@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -103,22 +104,31 @@ func RecoverPanic(next http.Handler) http.Handler {
 // Middleware to Auth specific routes
 func AuthRoutes(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		defer func() {
-			if err := LoadEnv(); err != nil {
-				return
-			}
-			//get JWToken from request
-			JWToken := r.Header.Get("Authorization")
-			token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
-				return []byte(os.Getenv("MYSTIC")), nil
-			})
+		if err := LoadEnv(); err != nil {
+			return
+		}
+		//get JWToken from request
+		JWToken := r.Header.Get("Authorization")
+		token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("MYSTIC")), nil
+		})
 
-			if err != nil || !token.Valid {
-				http.Error(w, "Unauthorized Operation", http.StatusUnauthorized)
-			}
+		if err != nil || !token.Valid {
+			http.Error(w, "Unauthorized Operation", http.StatusUnauthorized)
+		}
+		tokenClaims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Invalid Token claims", http.StatusBadRequest)
+		}
 
-		}()
-		next.ServeHTTP(w, r)
+		userID, ok := tokenClaims["user_id"]
+		if !ok {
+			http.Error(w, "User is not Authorized", http.StatusBadRequest)
+		}
+
+		//store user_id in context
+		ctx := context.WithValue(r.Context(), "user_id", userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
