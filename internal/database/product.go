@@ -7,6 +7,8 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
+// TODO: push this to the products package.
+
 func NewProduct(name, description, image string, price uint64) (*models.Product, error) {
 	uuid, err := utils.GenerateUUID("product")
 	return &models.Product{

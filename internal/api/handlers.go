@@ -44,7 +44,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	//validate user input as w don't trust user input
 	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{
-		{Value: firstName, Validator: "fName"},
+		{Value: firstName, Validator: "fName"}, // "first_name"
 		{Value: lastName, Validator: "lName"},
 		{Value: email, Validator: "email"},
 		{Value: passowrd, Validator: "password"},
