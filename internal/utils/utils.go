@@ -198,6 +198,7 @@ func GenerateToken(user *models.User) (string, error) {
 	return JWToken, nil
 }
 
+// //
 func EncryptPass(password, key []byte) (string, error) {
 	//create aes block with provided key
 	block, err := aes.NewCipher(key)
