@@ -11,3 +11,8 @@ require (
 	github.com/justinas/alice v1.2.0
 	golang.org/x/crypto v0.18.0
 )
+
+require (
+	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/zap v1.26.0 // indirect
+)

@@ -104,7 +104,7 @@ func RecoverPanic(next http.Handler) http.Handler {
 type mapKey string
 
 const (
-	userIDkey mapKey = "user_id"
+	UserIDkey mapKey = "user_id"
 )
 
 // Middleware to Auth specific routes
@@ -133,7 +133,7 @@ func AuthRoutes(next http.Handler) http.Handler {
 		}
 
 		//store user_id in context
-		ctx := context.WithValue(r.Context(), userIDkey, userID)
+		ctx := context.WithValue(r.Context(), UserIDkey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -216,7 +216,7 @@ func GenerateToken(user *models.User) (string, error) {
 	return JWToken, nil
 }
 
-// //
+// EncryptPass encrypts password using AES.
 func EncryptPass(password []byte) (string, error) {
 	if err := LoadEnv(); err != nil {
 		return "", err
@@ -255,13 +255,13 @@ func DecryptPass(cipherText string) (string, error) {
 		return "", err
 	}
 
-	//decode cipherText
+	// decode cipherText.
 	decipherText, err := base64.RawStdEncoding.DecodeString(cipherText)
 	if err != nil {
 		return "", nil
 	}
 
-	//pop initialization vector
+	// pop initialization vector.
 	iv := decipherText[:aes.BlockSize]
 	decipherText = decipherText[aes.BlockSize:]
 
@@ -271,13 +271,13 @@ func DecryptPass(cipherText string) (string, error) {
 	return string(decipherText), nil
 }
 
-// compare encypted data and user provided data
+// CompareCryptedAndPassword compares encypted data and user provided data.
 func CompareCryptedAndPassword(password string, user *models.User) error {
 	Uncrypted, err := DecryptPass(user.Password)
 	if err != nil {
 		return err
 	}
-	//compare !!!time @++@ck6!!!
+	// compare !!!time @++@ck6!!!
 	if subtle.ConstantTimeCompare([]byte(Uncrypted), []byte(password)) != 1 {
 		return ErrInvalidCredentials
 	}
