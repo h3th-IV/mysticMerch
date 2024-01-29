@@ -7,7 +7,6 @@ import (
 
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.User, error) {
@@ -15,11 +14,11 @@ func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.
 	if err != nil {
 		return nil, err
 	}
-	passwordHash, err := utils.HashPassword(password)
+	cryptedPassword, err := utils.EncryptPass([]byte(password))
 	if err != nil {
 		return nil, err
 	}
-	hashed := string(passwordHash)
+	crypted := string(cryptedPassword)
 
 	return &models.User{
 		UserID:      uuid,
@@ -27,7 +26,7 @@ func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.
 		LastName:    &lastName,
 		Email:       &email,
 		PhoneNumber: &phoneNumber,
-		Password:    hashed,
+		Password:    crypted,
 	}, nil
 }
 
@@ -117,9 +116,9 @@ func (um *DBModel) AuthenticateUser(email, password string) (*models.User, error
 		}
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	err = utils.CompareCryptedAndPassword(password, &user)
 	if err != nil {
-		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+		if errors.Is(err, utils.ErrMismatchedCryptAndPassword) {
 			return nil, utils.ErrInvalidCredentials
 		} else {
 			return nil, err
@@ -226,16 +225,16 @@ func (dm *DBModel) EditAddr(user *models.User) error {
 	query := `select * from address where user_id = ? and address_id = ?`
 
 	tx, err := dm.DB.Begin()
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 	stmt, err := tx.Prepare(query)
-	if err != nil{
+	if err != nil {
 		return nil
 	}
 	defer stmt.Close()
-	if err := tx.Commit(); err != nil{
+	if err := tx.Commit(); err != nil {
 		return err
 	}
 	return nil

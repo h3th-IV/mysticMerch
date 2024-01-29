@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/subtle"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -79,8 +80,9 @@ var (
 
 	ErrInvalidCredentials = errors.New("err: invalid credentials")
 
-	ErrExsistingCrednetials = errors.New("err: dupliacte Credentials")
-	MySQLErr                *mysql.MySQLError
+	ErrExsistingCrednetials       = errors.New("err: dupliacte Credentials")
+	MySQLErr                      *mysql.MySQLError
+	ErrMismatchedCryptAndPassword = errors.New("err: Paswword does not Match registered password")
 )
 
 // Middleware to recover panic
@@ -199,7 +201,12 @@ func GenerateToken(user *models.User) (string, error) {
 }
 
 // //
-func EncryptPass(password, key []byte) (string, error) {
+func EncryptPass(password []byte) (string, error) {
+	if err := LoadEnv(); err != nil {
+		return "", err
+	}
+
+	key := []byte(os.Getenv("HADESKEY"))
 	//create aes block with provided key
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -220,7 +227,12 @@ func EncryptPass(password, key []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(cipherText), nil
 }
 
-func DecryptPass(cipherText string, key []byte) (string, error) {
+func DecryptPass(cipherText string) (string, error) {
+	if err := LoadEnv(); err != nil {
+		return "", nil
+	}
+
+	key := []byte(os.Getenv("HADESKEY"))
 	//create a new block with key
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -241,4 +253,17 @@ func DecryptPass(cipherText string, key []byte) (string, error) {
 	stream.XORKeyStream(decipherText, decipherText)
 
 	return string(decipherText), nil
+}
+
+// compare encypted data and user provided data
+func CompareCryptedAndPassword(password string, user *models.User) error {
+	Uncrypted, err := DecryptPass(user.Password)
+	if err != nil {
+		return err
+	}
+	//compare !!!time @++@ck6!!!
+	if subtle.ConstantTimeCompare([]byte(Uncrypted), []byte(password)) != 1 {
+		return ErrInvalidCredentials
+	}
+	return nil
 }

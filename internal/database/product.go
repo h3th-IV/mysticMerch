@@ -299,3 +299,5 @@ func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, erro
 	}
 	return userCart, nil
 }
+
+func (dm *DBModel) EditCartItem()
