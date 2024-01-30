@@ -8,5 +8,5 @@ import (
 
 func main() {
 	utils.ReplaceLogger.Info("Starting Server at", zap.String("port", "8000"))
-	server.Routes()
+	server.StartServer()
 }

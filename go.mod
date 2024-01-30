@@ -9,10 +9,8 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	github.com/justinas/alice v1.2.0
+	go.uber.org/zap v1.26.0
 	golang.org/x/crypto v0.18.0
 )
 
-require (
-	go.uber.org/multierr v1.10.0 // indirect
-	go.uber.org/zap v1.26.0 // indirect
-)
+require go.uber.org/multierr v1.10.0 // indirect

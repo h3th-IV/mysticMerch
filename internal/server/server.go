@@ -14,7 +14,7 @@ import (
 type MarketPlace struct {
 }
 
-func Routes() {
+func StartServer() {
 	logger := utils.NewLogger(os.Stdout, os.Stderr)
 	//use alice to package potential middleware
 	middlewareChain := alice.New(utils.RequestLogger, utils.RecoverPanic)
@@ -28,7 +28,7 @@ func Routes() {
 	//set User Related routes
 	SetUserRoutes(router)
 
-	//set Product realted routes
+	//set Product related routes
 	SetProductRoutes(router)
 
 	//set Cart routes
