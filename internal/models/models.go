@@ -13,6 +13,7 @@ import (
 	Ordertable
 	Payment
 */
+
 // Usser model.
 type User struct {
 	ID          *int        `json:"id"`      //db auto increment
@@ -26,28 +27,6 @@ type User struct {
 	UpdatedAt   time.Ticker `json:"updatedAt"`
 }
 
-// // init new user type
-// func NewUser(firstName, lastName, email, phoneNumber, password string) (*User, error) {
-// 	uuid, err := utils.GenerateUUID("user")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	cryptedPassword, err := utils.EncryptPass([]byte(password))
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	crypted := string(cryptedPassword)
-
-// 	return &User{
-// 		UserID:      uuid,
-// 		FirstName:   &firstName,
-// 		LastName:    &lastName,
-// 		Email:       &email,
-// 		PhoneNumber: &phoneNumber,
-// 		Password:    crypted,
-// 	}, nil
-// }
-
 // Products available in store.
 type Product struct {
 	ID          *int    `json:"id"`         //auto increment
@@ -58,18 +37,6 @@ type Product struct {
 	Price       *uint64 `json:"price"`
 	Rating      uint8   `json:"rating"`
 }
-
-// func NewProduct(name, description, image string, price uint64) (*Product, error) {
-// 	uuid, err := utils.GenerateUUID("product")
-// 	return &Product{
-// 		ProductID:   &uuid,
-// 		ProductName: &name,
-// 		Description: &description,
-// 		Image:       &image,
-// 		Price:       &price,
-// 		Rating:      uint8(0),
-// 	}, err
-// }
 
 // simplified product for API response
 type ResponseProduct struct {

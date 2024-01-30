@@ -2,12 +2,12 @@ package server
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/api"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 	"github.com/justinas/alice"
+	"go.uber.org/zap"
 )
 
 // struct for the Apllication related configuration
@@ -15,7 +15,7 @@ type MarketPlace struct {
 }
 
 func StartServer() {
-	logger := utils.NewLogger(os.Stdout, os.Stderr)
+	// logger := utils.NewLogger(os.Stdout, os.Stderr)
 	//use alice to package potential middleware
 	middlewareChain := alice.New(utils.RequestLogger, utils.RecoverPanic)
 
@@ -38,8 +38,10 @@ func StartServer() {
 	server := &http.Server{
 		Addr:     ":8000",
 		Handler:  router,
-		ErrorLog: logger.ErrLogger,
+		ErrorLog: zap.NewStdLog(utils.ReplaceLogger),
 	}
-	logger.InfoLogger.Println("Listening and serving :8000")
-	logger.ErrLogger.Fatal(server.ListenAndServe())
+	utils.ReplaceLogger.Info("Listening and serving :8000")
+	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		utils.ReplaceLogger.Fatal("Server Failed to start", zap.Error(err))
+	}
 }

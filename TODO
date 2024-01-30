@@ -1,8 +1,8 @@
 # Todos
 
-- [ ] Use zap for logging. And log everything.
-- [ ] Use snake_case for json tags, instead of camelCase.
-- [ ] Fix the nil pointer dereferencing error in utils.go:97
-- [ ] Replace fmt statements and internal logger with zap logger.
-- [ ] Trim database/product.go to have 100LoC or less by categorizing the functions into separate files.
-- [ ] Read people's codebase to grow.
+- [X] Use zap for logging. And log everything.
+- [x] Fix the nil pointer dereferencing error in utils.go:97
+- [X] Replace fmt statements and internal logger with zap logger.
+- [X] Trim database/product.go to have 100LoC or less by categorizing the functions into separate files.
+- [X] Read people's codebase to grow.
+- [X] Setup  DB

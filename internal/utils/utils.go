@@ -61,8 +61,8 @@ func LoadEnv() error {
 // Middleware to log requests to the server
 func RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		logger := NewLogger(os.Stdout, os.Stderr)
-		logger.InfoLogger.Printf(fmt.Sprintf("%v - %v %v %v", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI()))
+		// logger := NewLogger(os.Stdout, os.Stderr)
+		ReplaceLogger.Info((fmt.Sprintf("%v - %v %v %v", r.RemoteAddr, r.Proto, r.Method, r.URL.RequestURI())))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -140,10 +140,8 @@ func AuthRoutes(next http.Handler) http.Handler {
 
 // used for all internal server Error
 func ServerError(w http.ResponseWriter, err error) {
-	logger := NewLogger(os.Stdout, os.Stderr)
 	errTrace := fmt.Sprintf("%v\n%v", err.Error(), debug.Stack())
-	//write output for logging event 2 step backwards
-	logger.ErrLogger.Output(2, errTrace)
+	ReplaceLogger.Error(errTrace)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
@@ -176,7 +174,7 @@ func ValidateSignUpDetails(details []models.ValidAta) bool {
 	return true
 }
 
-func GenerateUUID(e string) (string, error) {
+func GenerateUUID(elemenType string) (string, error) {
 	//generate new uuuid
 	id, err := uuid.NewRandom()
 	if err != nil {
@@ -184,7 +182,7 @@ func GenerateUUID(e string) (string, error) {
 	}
 	//convert string and add prefix
 	uuid := id.String()
-	switch e {
+	switch elemenType {
 	case "user":
 		uuid = "usr" + uuid
 	case "product":
@@ -271,15 +269,16 @@ func DecryptPass(cipherText string) (string, error) {
 	return string(decipherText), nil
 }
 
-// CompareCryptedAndPassword compares encypted data and user provided data.
 func CompareCryptedAndPassword(password string, user *models.User) error {
-	Uncrypted, err := DecryptPass(user.Password)
+	decrypted, err := DecryptPass(user.Password)
 	if err != nil {
 		return err
 	}
-	// compare !!!time @++@ck6!!!
-	if subtle.ConstantTimeCompare([]byte(Uncrypted), []byte(password)) != 1 {
-		return ErrInvalidCredentials
+
+	//mitigate time @++cks constant time compare
+	if subtle.ConstantTimeCompare([]byte(decrypted), []byte(password)) != 1 {
+		//password deos not match
+		return ErrMismatchedCryptAndPassword
 	}
 	return nil
 }
