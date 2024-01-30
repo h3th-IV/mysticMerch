@@ -36,11 +36,11 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, err)
 	}
 
-	firstName := r.FormValue("firstName")
-	lastName := r.FormValue("lastName")
+	firstName := r.FormValue("first_name")
+	lastName := r.FormValue("last_name")
 	email := r.FormValue("email")
 	passowrd := r.FormValue("password")
-	phoneNumber := r.FormValue("phoneNumber")
+	phoneNumber := r.FormValue("phone_number")
 
 	//validate user input as w don't trust user input
 	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{

@@ -163,7 +163,7 @@ func ValidateSignUpDetails(details []models.ValidAta) bool {
 			if !password.MatchString(details[i].Value) {
 				return false
 			}
-		case "fName":
+		case "f_name":
 			if !fName.MatchString(details[i].Value) {
 				return false
 			}
