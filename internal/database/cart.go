@@ -80,7 +80,7 @@ func (dm *DBModel) AddProductoCart(userID, quantity int, productID, color, size 
 }
 
 // check for product in user cart
-func (dm *DBModel) CheckProductExistInUserCart(userid int, productId string) (bool, error) {
+func (dm *DBModel) CheckProductExistInUserCart(userid, productId int) (bool, error) {
 	query := `select count(*) from products where user_id = ? and product_id = ?`
 	tx, err := dm.DB.Begin()
 	if err != nil {
@@ -100,9 +100,31 @@ func (dm *DBModel) CheckProductExistInUserCart(userid int, productId string) (bo
 	return count > 0, nil
 }
 
+// Edit cart item; quantity, size, color e.t.c
+func (dm *DBModel) EditCartItem(userId, productID, quantity int, color, size string) error {
+	query := `update carts set quantity = quantity + ?, color = ?, size = ? where user_id = ? and product_id = ?`
+
+	tx, err := dm.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(quantity, color, size, userId, productID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // pop item from user cart
-func (dm *DBModel) RemoveItemfromCart(userid int, productID string) error {
-	query := `delete from carts where user_id = ? and product = ?`
+func (dm *DBModel) RemoveItemfromCart(userid int, productID int) error {
+	query := `delete from carts where user_id = ? and product_id = ?`
 	productChecker, err := dm.CheckProductExistInUserCart(userid, productID)
 	if err != nil {
 		return err

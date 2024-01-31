@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/database"
@@ -131,14 +132,14 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 
 // view user cart ##
 func UserCart(w http.ResponseWriter, r *http.Request) {
-	user_id := (r.Context().Value(utils.UserIDkey)).(string)
-	id, err := dataBase.GetUserID(user_id)
+	uuid := (r.Context().Value(utils.UserIDkey)).(string)
+	user_id, err := dataBase.GetUserID(uuid)
 	if err != nil {
 		http.Error(w, "err getting user_id", http.StatusBadRequest)
 		return
 	}
 
-	Products, err := dataBase.GetUserCart(id)
+	Products, err := dataBase.GetUserCart(user_id)
 	if err != nil {
 		http.Error(w, "Unable to get user's cart", http.StatusNotFound)
 		return
@@ -153,12 +154,81 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 
 // edit prduct ##
 func AddtoCart(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Unable to Parse Form", http.StatusBadRequest)
+		return
+	}
 
+	query := r.URL.Query()
+	ProductID := query.Get("product_id")
+	quantity := r.FormValue("quantity")
+	q, _ := strconv.Atoi(quantity)
+	color := r.FormValue("color")
+	size := r.FormValue("size")
+
+	product, _ := dataBase.GetProduct(ProductID)
+	//get user Id from token
+	uuid := r.Context().Value(utils.UserIDkey).(string)
+	user_id, err := dataBase.GetUserID(uuid)
+	if err != nil {
+		http.Error(w, "User Possibly Not Authenticated", http.StatusUnauthorized)
+		return
+	}
+
+	err = dataBase.AddProductoCart(user_id, q, ProductID, color, size)
+	if err != nil {
+		http.Error(w, "Failed to add Product to user cart", http.StatusInternalServerError)
+		return
+	}
+
+	response := make(map[string]interface{})
+	response["message"] = "Product added to user cart succesfully"
+	response["product"] = product
+
+	//set content Type#
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
-// update product details like add quantity
+// update cart details like add quantity, change color and size
 func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
+	//parse Update details
+	var updateDetails *models.UpdateCartProduct
+	if err := json.NewDecoder(r.Body).Decode(&updateDetails); err != nil {
+		http.Error(w, "Failed to decode details"+err.Error(), http.StatusBadRequest)
+		return
+	}
 
+	//get user id from contxt
+	uuid := r.Context().Value(utils.UserIDkey).(string)
+	user_id, err := dataBase.GetUserID(uuid)
+	if err != nil {
+		http.Error(w, "Failed to retreive user ID"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	//check if product exist in user cart
+	exist, err := dataBase.CheckProductExistInUserCart(user_id, updateDetails.ProductID)
+	if err != nil {
+		http.Error(w, "Failed to check if Product exist in user's cart"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if !exist {
+		http.Error(w, "Product not found in user's cart"+err.Error(), http.StatusInternalServerError)
+	}
+
+	//update Product details
+	if err = dataBase.EditCartItem(user_id, updateDetails.ProductID, updateDetails.Quantity, updateDetails.Color, updateDetails.Size); err != nil {
+		http.Error(w, "Failed to update product in user's cart"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message": "Product details updated succesfully",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 // edit prduct ##

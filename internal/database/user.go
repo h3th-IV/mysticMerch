@@ -10,22 +10,22 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
 
-// init new user type
-func NewUser(firstName, lastName, email, phoneNumber, password string) (*models.User, error) {
+// init new user
+func NewUser(fName, LName, email, phoneNumber, password string) (*models.User, error) {
+	crypted, err := utils.EncryptPass([]byte(password))
+	if err != nil {
+		return nil, err
+	}
+
 	uuid, err := utils.GenerateUUID("user")
 	if err != nil {
 		return nil, err
 	}
-	cryptedPassword, err := utils.EncryptPass([]byte(password))
-	if err != nil {
-		return nil, err
-	}
-	crypted := string(cryptedPassword)
 
 	return &models.User{
 		UserID:      uuid,
-		FirstName:   &firstName,
-		LastName:    &lastName,
+		FirstName:   &fName,
+		LastName:    &LName,
 		Email:       &email,
 		PhoneNumber: &phoneNumber,
 		Password:    crypted,
@@ -118,14 +118,6 @@ func (um *DBModel) AuthenticateUser(email, password string) (*models.User, error
 		}
 	}
 
-	err = utils.CompareCryptedAndPassword(password, &user)
-	if err != nil {
-		if errors.Is(err, utils.ErrMismatchedCryptAndPassword) {
-			return nil, utils.ErrInvalidCredentials
-		} else {
-			return nil, err
-		}
-	}
 	err = tx.Commit()
 	if err != nil {
 		return nil, err

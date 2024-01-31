@@ -47,6 +47,13 @@ type ResponseProduct struct {
 	Image       *string `json:"image"`
 }
 
+type UpdateCartProduct struct {
+	ProductID int    `json:"product_id"`
+	Quantity  int    `json:"quantity"`
+	Color     string `json:"color"`
+	Size      string `json:"size"`
+}
+
 // Produts associated with the user(like ordered product)
 type UserProducts struct {
 	ProductID   *int    `json:"product_id"`
