@@ -148,7 +148,7 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(Products); err != nil {
-		http.Error(w, "Unable to encode products into JSON:"+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to encode json object"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -189,7 +189,10 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 
 	//set content Type#
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err = json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode json object"+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // update cart details like add quantity, change color and size
@@ -229,7 +232,10 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 		"message": "Product details updated succesfully",
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err = json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode json object"+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // edit prduct ##
@@ -265,7 +271,10 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		"message": "Item reomved from cart successfully",
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	if err = json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode json object"+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 }
 
@@ -292,6 +301,7 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get item from user's cart"+err.Error(), http.StatusInternalServerError)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(item); err != nil {
 		http.Error(w, "Failed to encode item ito json object"+err.Error(), http.StatusInternalServerError)
 		return
