@@ -50,7 +50,7 @@ func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, erro
 
 // add product to user cart
 func (dm *DBModel) AddProductoCart(userID, quantity int, productID, color, size string) error {
-	query := `insert into carts(user_id, product_id, product_name, price, rating, image, quantity, color, size) values(?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `insert into carts(user_id, product_id, product_name, description, price, rating, image, quantity, color, size) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	//retrive product info
 	product, err := dm.GetProduct(productID)
 	if err != nil {
@@ -69,7 +69,7 @@ func (dm *DBModel) AddProductoCart(userID, quantity int, productID, color, size 
 		return err
 	}
 	defer stmt.Close()
-	_, err = stmt.Exec(userID, product.ProductID, product.ProductName, product.Price, product.Rating, product.Image, quantity, color, size)
+	_, err = stmt.Exec(userID, product.ProductID, product.ProductName, product.Description, product.Price, product.Rating, product.Image, quantity, color, size)
 	if err != nil {
 		return err
 	}
@@ -152,4 +152,29 @@ func (dm *DBModel) RemoveItemfromCart(userid int, productID int) error {
 	return nil
 }
 
-// edit cart like size, color, quantity
+// retrive item from cart
+func (dm *DBModel) GetItemFromCart(userId, productID int) (*models.ResponseProduct, error) {
+	query := `select product_name, description, price, rating, image from carts where user_id = ? and product_id = ?`
+
+	tx, err := dm.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+
+	row := stmt.QueryRow(userId, productID)
+	var item *models.ResponseProduct
+
+	err = row.Scan(&item.ProductName, &item.Description, &item.Price, &item.Rating, &item.Image)
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
+}

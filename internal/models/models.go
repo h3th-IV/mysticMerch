@@ -47,7 +47,7 @@ type ResponseProduct struct {
 	Image       *string `json:"image"`
 }
 
-type UpdateCartProduct struct {
+type RequestProduct struct {
 	ProductID int    `json:"product_id"`
 	Quantity  int    `json:"quantity"`
 	Color     string `json:"color"`

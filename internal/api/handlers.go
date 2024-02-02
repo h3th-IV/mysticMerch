@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -194,9 +195,9 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 // update cart details like add quantity, change color and size
 func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	//parse Update details
-	var updateDetails *models.UpdateCartProduct
+	var updateDetails *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&updateDetails); err != nil {
-		http.Error(w, "Failed to decode details"+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to decode object"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -233,12 +234,68 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 
 // edit prduct ##
 func RemovefromCart(w http.ResponseWriter, r *http.Request) {
+	var product *models.RequestProduct
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		http.Error(w, "Failed to decode object"+err.Error(), http.StatusBadRequest)
+		return
+	}
+	uuid := r.Context().Value(utils.UserIDkey).(string)
+	id, err := dataBase.GetUserID(uuid)
+	if err != nil {
+		http.Error(w, "Failed to get user ID"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	exist, err := dataBase.CheckProductExistInUserCart(id, product.ProductID)
+	if err != nil {
+		http.Error(w, "Failed to check if Product exist in user's cart"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	//check existence of product
+	if !exist {
+		http.Error(w, "Product not found in user's cart"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := dataBase.RemoveItemfromCart(id, product.ProductID); err != nil {
+		http.Error(w, "Failed to remove item from cart"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]interface{}{
+		"message": "Item reomved from cart successfully",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 
 }
 
 // GetItem from cart use list UserPorduct here ##
 func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
+	var product *models.RequestProduct
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		http.Error(w, "Failed to decode object"+err.Error(), http.StatusBadRequest)
+		return
+	}
 
+	uuid := r.Context().Value(utils.UserIDkey).(string)
+	id, err := dataBase.GetUserID(uuid)
+	if err != nil {
+		http.Error(w, "Failed to get user ID"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	item, err := dataBase.GetItemFromCart(id, product.ProductID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			http.Error(w, "Item not found in user's cart", http.StatusInternalServerError)
+			return
+		}
+		http.Error(w, "Failed to get item from user's cart"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err = json.NewEncoder(w).Encode(item); err != nil {
+		http.Error(w, "Failed to encode item ito json object"+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 // buy from cart ##
