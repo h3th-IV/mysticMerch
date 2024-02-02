@@ -6,3 +6,4 @@
 - [X] Trim database/product.go to have 100LoC or less by categorizing the functions into separate files.
 - [-] Read people's codebase to grow.
 - [ ] Setup  DB
+- [ ] correct selection in db operation

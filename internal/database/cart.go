@@ -176,5 +176,8 @@ func (dm *DBModel) GetItemFromCart(userId, productID int) (*models.ResponseProdu
 		return nil, err
 	}
 
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
 	return item, nil
 }

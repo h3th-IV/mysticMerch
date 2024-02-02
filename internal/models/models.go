@@ -38,6 +38,13 @@ type Product struct {
 	Rating      uint8   `json:"rating"`
 }
 
+type RequestProduct struct {
+	ProductID int    `json:"product_id"`
+	Quantity  int    `json:"quantity"`
+	Color     string `json:"color"`
+	Size      string `json:"size"`
+}
+
 // simplified product for API response
 type ResponseProduct struct {
 	ProductName *string `json:"product_name"`
@@ -45,13 +52,6 @@ type ResponseProduct struct {
 	Price       *string `json:"price"`
 	Rating      *string `json:"rating"`
 	Image       *string `json:"image"`
-}
-
-type RequestProduct struct {
-	ProductID int    `json:"product_id"`
-	Quantity  int    `json:"quantity"`
-	Color     string `json:"color"`
-	Size      string `json:"size"`
 }
 
 // Produts associated with the user(like ordered product)
