@@ -70,26 +70,26 @@ func (dm *DBModel) InsertUser(fname, lname, email, phoneNumber, password string)
 }
 
 // GetUserby uuid(i.e when logged in)
-func (dm *DBModel) GetUserID(uuid string) (int, error) {
-	query := `select id from users where user_id = ?`
+func (dm *DBModel) GetUserbyUUID(uuid string) (*models.ResponseUser, error) {
+	query := `select id, first_name, last_name, email, phone_number from users where user_id = ?`
 	tx, err := dm.DB.Begin()
 	if err != nil {
-		return 0, nil
+		return nil, err
 	}
 	defer tx.Rollback()
 	stmt, err := tx.Prepare(query)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer stmt.Close()
-	user := models.User{}
-	rowErr := stmt.QueryRow(uuid).Scan(&user.ID)
+	user := models.ResponseUser{}
+	rowErr := stmt.QueryRow(uuid).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber)
 	if rowErr != nil {
 		if errors.Is(rowErr, sql.ErrNoRows) {
-			return 0, rowErr
+			return nil, rowErr
 		}
 	}
-	return *user.ID, nil
+	return &user, nil
 }
 
 // auth the user for login
@@ -148,18 +148,18 @@ func (dm *DBModel) RemoveUser(user_id int) error {
 }
 
 // create new address
-func NewAddress(user *models.User, houseNo, str, city, postalCode string) *models.Address {
+func NewAddress(user *models.ResponseUser, houseNo, str, city, postalCode string) *models.Address {
 	return &models.Address{
 		HouseNo:     &houseNo,
 		Street:      &str,
 		City:        &city,
 		PostalCode:  &postalCode,
-		UserPhoneNo: user.PhoneNumber,
+		UserPhoneNo: &user.PhoneNumber,
 	}
 }
 
 // register new address
-func (dm *DBModel) AddUserAddress(user *models.User, houseNo, str, city, postalCode string) error {
+func (dm *DBModel) AddUserAddress(user *models.ResponseUser, houseNo, str, city, postalCode string) error {
 	adrr := NewAddress(user, houseNo, str, city, postalCode)
 	query := `insert into address(user_id, house_no, street, city, postal_code) values(?, ?, ?, ?, ?)`
 
@@ -186,7 +186,7 @@ func (dm *DBModel) AddUserAddress(user *models.User, houseNo, str, city, postalC
 }
 
 // return user addresses
-func (dm *DBModel) ReturnUserAddress(user *models.User) ([]*models.Address, error) {
+func (dm *DBModel) ReturnUserAddress(userID int) ([]*models.Address, error) {
 	query := `select * from address where user_id = ?`
 	tx, err := dm.DB.Begin()
 	if err != nil {
@@ -198,7 +198,7 @@ func (dm *DBModel) ReturnUserAddress(user *models.User) ([]*models.Address, erro
 		return nil, err
 	}
 	defer stmt.Close()
-	rows, err := stmt.Query(user.ID)
+	rows, err := stmt.Query(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -216,6 +216,30 @@ func (dm *DBModel) ReturnUserAddress(user *models.User) ([]*models.Address, erro
 	}
 
 	return UserAddrs, nil
+}
+
+// reomve address
+func (dm *DBModel) ReomveAddress(userID, address_id int) error {
+	query := `delete * from address where address_id = ? and user_id = ? `
+
+	tx, err := dm.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(address_id, userID)
+	if err != nil {
+		return err
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // to be completed

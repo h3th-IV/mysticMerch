@@ -27,6 +27,14 @@ type User struct {
 	UpdatedAt   time.Ticker `json:"updatedAt"`
 }
 
+type ResponseUser struct {
+	ID          *int   `json:"id"`
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number"`
+}
+
 // Products available in store.
 type Product struct {
 	ID          *int    `json:"id"`         //auto increment
