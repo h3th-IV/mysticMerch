@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/database"
@@ -161,20 +160,12 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 // edit prduct ##
 func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "Unable to Parse Form", http.StatusBadRequest)
+
+	var product *models.RequestProduct
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		http.Error(w, "Failed to decode request: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	query := r.URL.Query()
-	ProductID := query.Get("product_id")
-	quantity := r.FormValue("quantity")
-	q, _ := strconv.Atoi(quantity)
-	color := r.FormValue("color")
-	size := r.FormValue("size")
-
-	product, _ := dataBase.GetProduct(ProductID)
 	//get user Id from token
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -183,7 +174,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = dataBase.AddProductoCart(*user.ID, q, ProductID, color, size)
+	err = dataBase.AddProductoCart(*user.ID, product.Quantity, product.ProductUUID, product.Color, product.Size)
 	if err != nil {
 		http.Error(w, "Failed to add Product to user cart", http.StatusInternalServerError)
 		return
@@ -219,8 +210,10 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//get product
+	product, err := dataBase.GetProduct(updateDetails.ProductUUID)
 	//check if product exist in user cart
-	exist, err := dataBase.CheckProductExistInUserCart(*user.ID, updateDetails.ProductID)
+	exist, err := dataBase.CheckProductExistInUserCart(*user.ID, *product.ID)
 	if err != nil {
 		http.Error(w, "Failed to check if Product exist in user's cart"+err.Error(), http.StatusInternalServerError)
 		return
@@ -230,7 +223,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//update Product details
-	if err = dataBase.EditCartItem(*user.ID, updateDetails.ProductID, updateDetails.Quantity, updateDetails.Color, updateDetails.Size); err != nil {
+	if err = dataBase.EditCartItem(*user.ID, *product.ID, updateDetails.Quantity, updateDetails.Color, updateDetails.Size); err != nil {
 		http.Error(w, "Failed to update product in user's cart: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -259,7 +252,11 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get user ID"+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	exist, err := dataBase.CheckProductExistInUserCart(*user.ID, product.ProductID)
+	cartProduct, err := dataBase.GetProduct(product.ProductUUID)
+	if err != nil {
+		http.Error(w, "Failed to get product from store: "+err.Error(), http.StatusInternalServerError)
+	}
+	exist, err := dataBase.CheckProductExistInUserCart(*user.ID, *cartProduct.ID)
 	if err != nil {
 		http.Error(w, "Failed to check if Product exist in user's cart"+err.Error(), http.StatusInternalServerError)
 		return
@@ -270,7 +267,9 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := dataBase.RemoveItemfromCart(*user.ID, product.ProductID); err != nil {
+	//check if product is a store item
+	cartItem, err := dataBase.GetProduct(product.ProductUUID)
+	if err := dataBase.RemoveItemfromCart(*user.ID, *cartItem.ID); err != nil {
 		http.Error(w, "Failed to remove item from cart"+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -301,7 +300,8 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to get user ID: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
-	item, err := dataBase.GetItemFromCart(*user.ID, product.ProductID)
+	dbPoduct, err := dataBase.GetProduct(product.ProductUUID)
+	item, err := dataBase.GetItemFromCart(*user.ID, *dbPoduct.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.Error(w, "Item not found in user's cart", http.StatusInternalServerError)

@@ -47,10 +47,10 @@ type Product struct {
 }
 
 type RequestProduct struct {
-	ProductID int    `json:"product_id"`
-	Quantity  int    `json:"quantity"`
-	Color     string `json:"color"`
-	Size      string `json:"size"`
+	ProductUUID string `json:"product_id"`
+	Quantity    int    `json:"quantity"`
+	Color       string `json:"color"`
+	Size        string `json:"size"`
 }
 
 // simplified product for API response

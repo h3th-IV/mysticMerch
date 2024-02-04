@@ -49,15 +49,15 @@ func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, erro
 }
 
 // add product to user cart
-func (dm *DBModel) AddProductoCart(userID, quantity int, productID, color, size string) error {
+func (dm *DBModel) AddProductoCart(userID, quantity int, productUUID string, color, size string) error {
 	query := `insert into carts(user_id, product_id, product_name, description, price, rating, image, quantity, color, size) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	//retrive product info
-	product, err := dm.GetProduct(productID)
+	product, err := dm.GetProduct(productUUID)
 	if err != nil {
 		return err
 	}
 	if product == nil {
-		return fmt.Errorf("product with uuid, %v not found", productID)
+		return fmt.Errorf("product with uuid, %v not found", productUUID)
 	}
 	tx, err := dm.DB.Begin()
 	if err != nil {

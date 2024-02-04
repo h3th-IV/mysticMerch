@@ -241,23 +241,3 @@ func (dm *DBModel) ReomveAddress(userID, address_id int) error {
 	}
 	return nil
 }
-
-// to be completed
-func (dm *DBModel) EditAddr(user *models.User) error {
-	query := `select * from address where user_id = ? and address_id = ?`
-
-	tx, err := dm.DB.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	stmt, err := tx.Prepare(query)
-	if err != nil {
-		return nil
-	}
-	defer stmt.Close()
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-	return nil
-}

@@ -116,7 +116,7 @@ func (dm *DBModel) ViewProducts() ([]*models.ResponseProduct, error) {
 }
 
 // get product for other Operations by product uuid
-func (dm *DBModel) GetProduct(productID string) (*models.Product, error) {
+func (dm *DBModel) GetProduct(productUUID string) (*models.Product, error) {
 	query := `select * from products where product_id = ?`
 
 	tx, err := dm.DB.Begin()
@@ -131,7 +131,7 @@ func (dm *DBModel) GetProduct(productID string) (*models.Product, error) {
 	}
 	defer stmt.Close()
 
-	row, err := stmt.Query(productID)
+	row, err := stmt.Query(productUUID)
 	if err != nil {
 		return nil, err
 	}
