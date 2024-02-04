@@ -25,9 +25,14 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	//get some list of prduct to display on the home page
 	products, err := dataBase.ViewProducts()
 	if err != nil {
-		utils.ServerError(w, err)
+		utils.ServerError(w, "Failed to get products. Please try again later.", err)
+		return
 	}
-	json.NewEncoder(w).Encode(products)
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(products); err != nil {
+		utils.ServerError(w, "Failed to encode json object.", err)
+		return
+	}
 }
 
 // signUp post form Hadler ##
@@ -35,7 +40,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	err := r.ParseForm()
 	if err != nil {
-		utils.ServerError(w, err)
+		utils.ServerError(w, "Failed to parse form.", err)
 		return
 	}
 
@@ -53,12 +58,12 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		{Value: passowrd, Validator: "password"},
 	})
 	if !isDetailsValid {
-		http.Error(w, "Invalid User Input", http.StatusBadRequest)
+		http.Error(w, "Invalid User Input.", http.StatusBadRequest)
 	}
 
 	err = dataBase.InsertUser(firstName, lastName, email, phoneNumber, passowrd)
 	if err != nil {
-		utils.ServerError(w, err)
+		utils.ServerError(w, "Failed to create user.", err)
 		return
 	}
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -68,7 +73,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 func LogIn(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	if err := r.ParseForm(); err != nil {
-		utils.ServerError(w, err)
+		utils.ServerError(w, "Failed to parse form.", err)
 		return
 	}
 	email := r.FormValue("email")
@@ -79,16 +84,18 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 			return
 		}
-		utils.ServerError(w, err)
+		utils.ServerError(w, "Failed to authenticate user.", err)
 		return
 	}
 	JWToken, err := utils.GenerateToken(user)
 	if err != nil {
-		utils.ServerError(w, err)
+		utils.ServerError(w, "Failed to generate token.", err)
+		return
 	}
 	//send token to client
 	if err := json.NewEncoder(w).Encode(JWToken); err != nil {
-		http.Error(w, "Unable to encode token into JSON object"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode json object.", err)
+		return
 	}
 }
 
@@ -101,14 +108,15 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 
 	Products, err := dataBase.GetProductByName(ProductName)
 	if err != nil {
-		http.Error(w, "Product Not Available Yet", http.StatusInternalServerError)
+		utils.ServerError(w, "Product not available yet.", err)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 
 	//encode
 	if err = json.NewEncoder(w).Encode(Products); err != nil {
-		http.Error(w, "Unable to encode products into JSON:"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode products into JSON.", err)
 		return
 	}
 }
@@ -122,12 +130,12 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 	//get by the uuid of product
 	Product, err := dataBase.GetProduct(Product_id)
 	if err != nil {
-		http.Error(w, "Failed to Fetch Product", http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to Fetch Product", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(Product); err != nil {
-		http.Error(w, "Failed to encode json object: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode json object", err)
 		return
 	}
 }
@@ -140,19 +148,19 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 	uuid := (r.Context().Value(utils.UserIDkey)).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		http.Error(w, "err getting user_id", http.StatusBadRequest)
+		utils.ServerError(w, "Error getting user_id", err)
 		return
 	}
 
 	Products, err := dataBase.GetUserCart(*user.ID)
 	if err != nil {
-		http.Error(w, "Unable to get user's cart", http.StatusNotFound)
+		utils.ServerError(w, "Unable to get user's cart", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 
 	if err := json.NewEncoder(w).Encode(Products); err != nil {
-		http.Error(w, "Failed to encode json object: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode json object.", err)
 		return
 	}
 }

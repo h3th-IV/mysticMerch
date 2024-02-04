@@ -94,7 +94,7 @@ func RecoverPanic(next http.Handler) http.Handler {
 				//if panic close connection
 				w.Header().Set("Connection", "Close")
 				//write internal server error
-				ServerError(w, fmt.Errorf("%v", err))
+				ServerError(w, "Connection Closed inabruptly", fmt.Errorf("%v", err))
 			}
 		}()
 		next.ServeHTTP(w, r)
@@ -139,10 +139,10 @@ func AuthRoutes(next http.Handler) http.Handler {
 }
 
 // used for all internal server Error
-func ServerError(w http.ResponseWriter, err error) {
+func ServerError(w http.ResponseWriter, errSTring string, err error) {
 	errTrace := fmt.Sprintf("%v\n%v", err.Error(), debug.Stack())
 	ReplaceLogger.Error(errTrace)
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+	http.Error(w, errSTring, http.StatusInternalServerError)
 }
 
 func ValidateSignUpDetails(details []models.ValidAta) bool {
