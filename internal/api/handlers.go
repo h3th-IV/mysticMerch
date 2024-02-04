@@ -171,7 +171,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 
 	var product *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		http.Error(w, "Failed to decode request: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to decode object", http.StatusBadRequest)
 		return
 	}
 	//get user Id from token
@@ -184,7 +184,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 
 	err = dataBase.AddProductoCart(*user.ID, product.Quantity, product.ProductUUID, product.Color, product.Size)
 	if err != nil {
-		http.Error(w, "Failed to add Product to user cart", http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to add Product to user cart.", err)
 		return
 	}
 
@@ -206,7 +206,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	//parse Update details
 	var updateDetails *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&updateDetails); err != nil {
-		http.Error(w, "Failed to decode object: "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to decode object.", http.StatusBadRequest)
 		return
 	}
 
@@ -214,7 +214,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		http.Error(w, "Failed to retreive user ID: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to retreive user ID.", err)
 		return
 	}
 
@@ -223,16 +223,17 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	//check if product exist in user cart
 	exist, err := dataBase.CheckProductExistInUserCart(*user.ID, *product.ID)
 	if err != nil {
-		http.Error(w, "Failed to check if Product exist in user's cart"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to check if Product exist in user's cart", err)
 		return
 	}
 	if !exist {
-		http.Error(w, "Product not found in user's cart"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Product not found in user's cart", err)
+		return
 	}
 
 	//update Product details
 	if err = dataBase.EditCartItem(*user.ID, *product.ID, updateDetails.Quantity, updateDetails.Color, updateDetails.Size); err != nil {
-		http.Error(w, "Failed to update product in user's cart: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to update product in user's cart.", err)
 		return
 	}
 
@@ -241,7 +242,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode json object"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode json object.", err)
 		return
 	}
 }
@@ -257,28 +258,28 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		http.Error(w, "Failed to get user ID"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to get user ID", err)
 		return
 	}
 	cartProduct, err := dataBase.GetProduct(product.ProductUUID)
 	if err != nil {
-		http.Error(w, "Failed to get product from store: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to get product from store.", err)
 	}
 	exist, err := dataBase.CheckProductExistInUserCart(*user.ID, *cartProduct.ID)
 	if err != nil {
-		http.Error(w, "Failed to check if Product exist in user's cart"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to check if Product exist in user's cart", err)
 		return
 	}
 	//check existence of product
 	if !exist {
-		http.Error(w, "Product not found in user's cart"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Product not found in user's cart.", err)
 		return
 	}
 
 	//check if product is a store item
 	cartItem, err := dataBase.GetProduct(product.ProductUUID)
 	if err := dataBase.RemoveItemfromCart(*user.ID, *cartItem.ID); err != nil {
-		http.Error(w, "Failed to remove item from cart"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to remove item from cart", err)
 		return
 	}
 
@@ -287,7 +288,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode json object: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode json object.", err)
 		return
 	}
 
@@ -305,22 +306,22 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		http.Error(w, "Failed to get user ID: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to get user ID.", err)
 		return
 	}
 	dbPoduct, err := dataBase.GetProduct(product.ProductUUID)
 	item, err := dataBase.GetItemFromCart(*user.ID, *dbPoduct.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			http.Error(w, "Item not found in user's cart", http.StatusInternalServerError)
+			utils.ServerError(w, "Item not found in user's cart", err)
 			return
 		}
-		http.Error(w, "Failed to get item from user's cart: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to get item from user's cart.", err)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(item); err != nil {
-		http.Error(w, "Failed to encode item ito json object: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode item ito json object.", err)
 		return
 	}
 }
@@ -332,11 +333,11 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		http.Error(w, "Failed to retrieve user ID", http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to retrieve user ID", err)
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		utils.ServerError(w, err)
+		utils.ServerError(w, "Failed to parse form", err)
 		return
 	}
 	house_no := r.FormValue("house_no")
@@ -345,7 +346,7 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 	postal_code := r.FormValue("postal_code")
 
 	if err = dataBase.AddUserAddress(user, house_no, street, city, postal_code); err != nil {
-		http.Error(w, "Failed to Add new asddress", http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to Add new asddress", err)
 		return
 	}
 	response := map[string]interface{}{
@@ -354,7 +355,7 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Tyep", "application/json")
 	if err = json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode response.", err)
 		return
 	}
 }

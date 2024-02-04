@@ -139,10 +139,10 @@ func AuthRoutes(next http.Handler) http.Handler {
 }
 
 // used for all internal server Error
-func ServerError(w http.ResponseWriter, errSTring string, err error) {
+func ServerError(w http.ResponseWriter, errMsg string, err error) {
 	errTrace := fmt.Sprintf("%v\n%v", err.Error(), debug.Stack())
 	ReplaceLogger.Error(errTrace)
-	http.Error(w, errSTring, http.StatusInternalServerError)
+	http.Error(w, errMsg, http.StatusInternalServerError)
 }
 
 func ValidateSignUpDetails(details []models.ValidAta) bool {
