@@ -107,31 +107,44 @@ const (
 	UserIDkey mapKey = "user_id"
 )
 
-func GenerateToken(user *models.User) (string, error) {
-	//load env files
-	if err := LoadEnv(); err != nil {
-		return "", err
-	}
+func GenerateToken(user *models.User, expiry time.Duration, issuer, secret string) (string, error) {
 	//set expiry date
-	bestBefore := time.Now().Add(time.Hour * 2)
+	bestBefore := time.Now().Add(expiry)
 
 	//ceate jwt tkeo with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": user.UserID,
 		"epx":     bestBefore.Unix(),
-		"iss":     os.Getenv("JWTISSUER"),
+		"iss":     issuer,
 	})
 
 	//generate token str and sign with seceret key
-	JWToken, err := token.SignedString([]byte(os.Getenv("MYSTIC")))
+	JWToken, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}
 	return JWToken, nil
 }
 
+func AdminToken(user *models.User, expiry time.Duration, issuer, secret string) (string, error) {
+	bestBefore := time.Now().Add(time.Hour * 10)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+		"user": user.UserID,
+		"exp":  bestBefore,
+		"iss":  issuer,
+	})
+
+	ADMINToken, err := token.SignedString([]byte(secret))
+	if err != nil {
+		return "", err
+	}
+
+	return ADMINToken, nil
+}
+
 // Middleware to Auth specific routes
-func AuthRoutes(next http.Handler) http.Handler {
+func JWTAuthRoutes(next http.Handler, secret string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if err := LoadEnv(); err != nil {
 			return
@@ -139,7 +152,7 @@ func AuthRoutes(next http.Handler) http.Handler {
 		//get JWToken from request
 		JWToken := r.Header.Get("Authorization")
 		token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("MYSTIC")), nil
+			return []byte(secret), nil
 		})
 
 		if err != nil || !token.Valid {
@@ -164,54 +177,13 @@ func AuthRoutes(next http.Handler) http.Handler {
 	})
 }
 
-func AdminToken(user *models.User) (string, error) {
-	if err := LoadEnv(); err != nil {
-		return "", err
-	}
-	bestBefore := time.Now().Add(time.Hour * 10)
-
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
-		"user": user.UserID,
-		"exp":  bestBefore,
-		"iss":  os.Getenv("JWTISSUER"),
-	})
-
-	ADMINToken, err := token.SignedString([]byte(os.Getenv("MYTH")))
-	if err != nil {
-		return "", err
-	}
-
-	return ADMINToken, nil
+func AuthRoute(next http.Handler) http.Handler {
+	return JWTAuthRoutes(next, os.Getenv("MYSTIC"))
 }
 
 // auth route for admin
 func AdminRoute(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := LoadEnv(); err != nil {
-			return
-		}
-
-		JWToken := r.Header.Get("Authorization")
-		token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
-			return []byte(os.Getenv("MYTH")), nil
-		})
-		if err != nil || !token.Valid {
-			http.Error(w, "Unauthorized Operations", http.StatusUnauthorized)
-			return
-		}
-		tokenClaims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			http.Error(w, "Invalid token Claims", http.StatusBadRequest)
-			return
-		}
-		userID, ok := tokenClaims["user"]
-		if !ok {
-			http.Error(w, "User is not authorized", http.StatusUnauthorized)
-			return
-		}
-		cxt := context.WithValue(r.Context(), UserIDkey, userID)
-		next.ServeHTTP(w, r.WithContext(cxt))
-	})
+	return JWTAuthRoutes(next, os.Getenv("MYTH"))
 }
 
 // used for all internal server Error

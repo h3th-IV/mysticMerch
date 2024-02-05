@@ -20,7 +20,7 @@ func SetProductRoutes(router *mux.Router) {
 func SetCartRoutes(router *mux.Router) {
 	CartProdcts := router.PathPrefix("/carts").Subrouter()
 
-	userMWchain := alice.New(utils.AuthRoutes)
+	userMWchain := alice.New(utils.AuthRoute)
 	//cart operations //will require authentication MW
 	CartProdcts.Handle("/cart", userMWchain.ThenFunc(api.UserCart)).Methods(http.MethodGet)
 	CartProdcts.Handle("/additem", userMWchain.ThenFunc(api.AddtoCart)).Methods(http.MethodPost)

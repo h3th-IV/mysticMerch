@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/database"
@@ -88,27 +89,17 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to authenticate user.", err)
 		return
 	}
+	var JWToken string
 	if email == os.Getenv("NIMDALIAME") {
-		JWToken, err := utils.AdminToken(user)
-		if err != nil {
-			utils.ServerError(w, "Failed to Generate token", err)
-			return
-		}
-		if err := json.NewEncoder(w).Encode(JWToken); err != nil {
-			utils.ServerError(w, "Failed to encode json object.", err)
-			return
-		}
+		JWToken, err = utils.AdminToken(user, 10*time.Hour, os.Getenv("JWTISSUER"), os.Getenv("MYTH"))
 	} else {
-		JWToken, err := utils.GenerateToken(user)
-		if err != nil {
-			utils.ServerError(w, "Failed to generate token.", err)
-			return
-		}
-		//send token to client
-		if err := json.NewEncoder(w).Encode(JWToken); err != nil {
-			utils.ServerError(w, "Failed to encode json object.", err)
-			return
-		}
+		JWToken, err = utils.GenerateToken(user, 2*time.Hour, os.Getenv("JWTISSUER"), os.Getenv("MYSTIC"))
+	}
+	if err != nil {
+		utils.ServerError(w, "Failed to generate token", err)
+	}
+	if err := json.NewEncoder(w).Encode(JWToken); err != nil {
+		utils.ServerError(w, "Failed to encode json object", err)
 	}
 }
 
