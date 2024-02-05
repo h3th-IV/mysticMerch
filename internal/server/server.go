@@ -10,10 +10,6 @@ import (
 	"go.uber.org/zap"
 )
 
-// struct for the Apllication related configuration
-type MarketPlace struct {
-}
-
 func StartServer() {
 	// logger := utils.NewLogger(os.Stdout, os.Stderr)
 	//use alice to package potential middleware

@@ -19,11 +19,11 @@ func SetCartRoutes(router *mux.Router) {
 	CartProdcts := router.PathPrefix("/carts").Subrouter()
 
 	//cart operations //will require authentication MW
-	CartProdcts.HandleFunc("/cart", api.UserCart)
-	CartProdcts.HandleFunc("/additem", api.AddtoCart)
-	CartProdcts.HandleFunc("/removeitem", api.RemovefromCart)
-	CartProdcts.HandleFunc("/updateitem", api.UpdateProductDetails)
-	CartProdcts.HandleFunc("/item", api.GetItemFromCart) //with request query
+	CartProdcts.HandleFunc("/cart", api.UserCart).Methods(http.MethodGet)
+	CartProdcts.HandleFunc("/additem", api.AddtoCart).Methods(http.MethodPost)
+	CartProdcts.HandleFunc("/updateitem", api.UpdateProductDetails).Methods(http.MethodPut)
+	CartProdcts.HandleFunc("/removeitem", api.RemovefromCart).Methods(http.MethodDelete)
+	CartProdcts.HandleFunc("/item", api.GetItemFromCart).Methods(http.MethodGet)
 	CartProdcts.HandleFunc("checkout", api.BuyFromCart)
 	CartProdcts.HandleFunc("/buy", api.InstantBuy)
 }
