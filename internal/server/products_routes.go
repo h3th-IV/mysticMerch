@@ -5,6 +5,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/api"
+	"github.com/h3th-IV/mysticMerch/internal/utils"
+	"github.com/justinas/alice"
 )
 
 func SetProductRoutes(router *mux.Router) {
@@ -18,12 +20,13 @@ func SetProductRoutes(router *mux.Router) {
 func SetCartRoutes(router *mux.Router) {
 	CartProdcts := router.PathPrefix("/carts").Subrouter()
 
+	userMWchain := alice.New(utils.AuthRoutes)
 	//cart operations //will require authentication MW
-	CartProdcts.HandleFunc("/cart", api.UserCart).Methods(http.MethodGet)
-	CartProdcts.HandleFunc("/additem", api.AddtoCart).Methods(http.MethodPost)
-	CartProdcts.HandleFunc("/updateitem", api.UpdateProductDetails).Methods(http.MethodPut)
-	CartProdcts.HandleFunc("/removeitem", api.RemovefromCart).Methods(http.MethodDelete)
-	CartProdcts.HandleFunc("/item", api.GetItemFromCart).Methods(http.MethodGet)
-	CartProdcts.HandleFunc("checkout", api.BuyFromCart)
-	CartProdcts.HandleFunc("/buy", api.InstantBuy)
+	CartProdcts.Handle("/cart", userMWchain.ThenFunc(api.UserCart)).Methods(http.MethodGet)
+	CartProdcts.Handle("/additem", userMWchain.ThenFunc(api.AddtoCart)).Methods(http.MethodPost)
+	CartProdcts.Handle("/updateitem", userMWchain.ThenFunc(api.UpdateProductDetails)).Methods(http.MethodPut)
+	CartProdcts.Handle("/removeitem", userMWchain.ThenFunc(api.RemovefromCart)).Methods(http.MethodDelete)
+	CartProdcts.Handle("/item", userMWchain.ThenFunc(api.GetItemFromCart)).Methods(http.MethodGet)
+	CartProdcts.Handle("checkout", userMWchain.ThenFunc(api.BuyFromCart))
+	CartProdcts.Handle("/buy", userMWchain.ThenFunc(api.InstantBuy))
 }

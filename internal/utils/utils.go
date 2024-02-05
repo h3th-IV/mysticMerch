@@ -58,7 +58,7 @@ func LoadEnv() error {
 	return nil
 }
 
-// Middleware to log requests to the server
+// Middleware to log requests to the server ##
 func RequestLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// logger := NewLogger(os.Stdout, os.Stderr)
@@ -86,7 +86,7 @@ var (
 	ErrMismatchedCryptAndPassword = errors.New("err: Paswword does not Match registered password")
 )
 
-// Middleware to recover panic
+// Middleware to recover panic ##
 func RecoverPanic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -107,6 +107,29 @@ const (
 	UserIDkey mapKey = "user_id"
 )
 
+func GenerateToken(user *models.User) (string, error) {
+	//load env files
+	if err := LoadEnv(); err != nil {
+		return "", err
+	}
+	//set expiry date
+	bestBefore := time.Now().Add(time.Hour * 2)
+
+	//ceate jwt tkeo with claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"user_id": user.UserID,
+		"epx":     bestBefore.Unix(),
+		"iss":     os.Getenv("JWTISSUER"),
+	})
+
+	//generate token str and sign with seceret key
+	JWToken, err := token.SignedString([]byte(os.Getenv("MYSTIC")))
+	if err != nil {
+		return "", err
+	}
+	return JWToken, nil
+}
+
 // Middleware to Auth specific routes
 func AuthRoutes(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -121,20 +144,73 @@ func AuthRoutes(next http.Handler) http.Handler {
 
 		if err != nil || !token.Valid {
 			http.Error(w, "Unauthorized Operation", http.StatusUnauthorized)
+			return
 		}
 		tokenClaims, ok := token.Claims.(jwt.MapClaims)
 		if !ok {
 			http.Error(w, "Invalid Token claims", http.StatusBadRequest)
+			return
 		}
 
 		userID, ok := tokenClaims["user_id"]
 		if !ok {
 			http.Error(w, "User is not Authorized", http.StatusBadRequest)
+			return
 		}
 
 		//store user_id in context
 		ctx := context.WithValue(r.Context(), UserIDkey, userID)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func AdminToken(user *models.User) (string, error) {
+	if err := LoadEnv(); err != nil {
+		return "", err
+	}
+	bestBefore := time.Now().Add(time.Hour * 10)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+		"user": user.UserID,
+		"exp":  bestBefore,
+		"iss":  os.Getenv("JWTISSUER"),
+	})
+
+	ADMINToken, err := token.SignedString([]byte(os.Getenv("MYTH")))
+	if err != nil {
+		return "", err
+	}
+
+	return ADMINToken, nil
+}
+
+// auth route for admin
+func AdminRoute(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if err := LoadEnv(); err != nil {
+			return
+		}
+
+		JWToken := r.Header.Get("Authorization")
+		token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
+			return []byte(os.Getenv("MYTH")), nil
+		})
+		if err != nil || !token.Valid {
+			http.Error(w, "Unauthorized Operations", http.StatusUnauthorized)
+			return
+		}
+		tokenClaims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
+			http.Error(w, "Invalid token Claims", http.StatusBadRequest)
+			return
+		}
+		userID, ok := tokenClaims["user"]
+		if !ok {
+			http.Error(w, "User is not authorized", http.StatusUnauthorized)
+			return
+		}
+		cxt := context.WithValue(r.Context(), UserIDkey, userID)
+		next.ServeHTTP(w, r.WithContext(cxt))
 	})
 }
 
@@ -189,29 +265,6 @@ func GenerateUUID(elemenType string) (string, error) {
 		uuid = "prd" + uuid
 	}
 	return uuid, nil
-}
-
-func GenerateToken(user *models.User) (string, error) {
-	//load env files
-	if err := LoadEnv(); err != nil {
-		return "", err
-	}
-	//set expiry date
-	bestBefore := time.Now().Add(time.Hour * 2)
-
-	//ceate jwt tkeo with claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.UserID,
-		"epx":     bestBefore.Unix(),
-		"iss":     os.Getenv("JWTISSUER"),
-	})
-
-	//generate token str and sign with seceret key
-	JWToken, err := token.SignedString([]byte(os.Getenv("MYSTIC")))
-	if err != nil {
-		return "", err
-	}
-	return JWToken, nil
 }
 
 // EncryptPass encrypts password using AES.
