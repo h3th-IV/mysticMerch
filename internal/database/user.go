@@ -92,6 +92,36 @@ func (dm *DBModel) GetUserbyUUID(uuid string) (*models.ResponseUser, error) {
 	return &user, nil
 }
 
+// Get al users from DB
+func (dm *DBModel) GetAllUsers() ([]*models.ResponseUser, error) {
+	query := `select id, first_name, last_name, email, phone_number from users`
+	tx, err := dm.DB.Begin()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return nil, err
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var Users []*models.ResponseUser
+	for rows.Next() {
+		var uSer *models.ResponseUser
+		rows.Scan(&uSer.ID, &uSer.FirstName, &uSer.LastName, &uSer.PhoneNumber)
+		if err != nil {
+			return nil, err
+		}
+		Users = append(Users, uSer)
+	}
+	return Users, nil
+}
+
 // auth the user for login
 func (um *DBModel) AuthenticateUser(email, password string) (*models.User, error) {
 	query := `select id, password_hash from users where email = ?`
