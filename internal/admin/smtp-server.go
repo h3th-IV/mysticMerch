@@ -28,12 +28,12 @@ func NewSMTP() *SMTPServer {
 }
 
 // trabsactional email sent to each user concerning the state of their transaction
-func TransactionalEmail(user *models.User, subject, body string) error {
+func TransactionalEmail(user *models.ResponseUser, subject, body string) error {
 	smtp := NewSMTP()
 	Dialer := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
 	Mailer := gomail.NewMessage()
 	Mailer.SetHeader("From", smtp.Username)
-	Mailer.SetHeader("To", *user.Email)
+	Mailer.SetHeader("To", user.Email)
 	Mailer.SetBody("text/html", body)
 	if err := Dialer.DialAndSend(Mailer); err != nil {
 		return err

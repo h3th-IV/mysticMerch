@@ -91,6 +91,11 @@ type BroadcastNotification struct {
 	Body    string `json:"body"` //for files such as html
 }
 
+type TransactionNotification struct {
+	BroadcastNotification
+	ResponseUser
+}
+
 // Oorder model
 type Order struct {
 	OrderID       *int      `json:"order_id"`

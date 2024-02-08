@@ -1,6 +1,8 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/api"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
@@ -12,6 +14,6 @@ func SetAdminRoutes(router *mux.Router) {
 
 	//routes for admin
 	authChain := alice.New(utils.AdminRoute)
-	adminRouter.Handle("/dashboard", authChain.ThenFunc(api.AdminBroadcast))
-
+	adminRouter.Handle("/broadcast", authChain.ThenFunc(api.AdminBroadcast)).Methods(http.MethodPost)
+	adminRouter.Handle("/transactional", authChain.ThenFunc(api.Transactional)).Methods(http.MethodPost)
 }

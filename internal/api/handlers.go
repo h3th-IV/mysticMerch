@@ -387,7 +387,7 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 
 	users, err := dataBase.GetAllUsers()
 	if err != nil {
-		http.Error(w, "Failed to retriev for Brodcast message"+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to retrive users for Brodcast message"+err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if err := admin.MarketingEmail(users, notification.Subject, notification.Body); err != nil {
@@ -398,11 +398,29 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 		"message": "Broadcast email send succesfully",
 	}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response"+err.Error(), http.StatusInternalServerError)
+		utils.ServerError(w, "Failed to encode response", err)
 		return
 	}
 }
 
 // send Transactional email to aparticular Customer
 func Transactional(w http.ResponseWriter, r *http.Request) {
+	var notification *models.TransactionNotification
+	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
+		http.Error(w, "Failed to decode request"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := admin.TransactionalEmail(&notification.ResponseUser, notification.Subject, notification.Body); err != nil {
+		http.Error(w, "Failed to send email to user"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := make(map[string]interface{})
+	response["message"] = "email sent Successfully"
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response"+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
