@@ -42,13 +42,13 @@ func TransactionalEmail(user *models.User, subject, body string) error {
 }
 
 // some form of Broadcast email
-func MarketingEmail(users []*models.User, subject, body string) error {
+func MarketingEmail(users []*models.ResponseUser, subject, body string) error {
 	smtp := NewSMTP()
 	Dialer := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
 	Mailer := gomail.NewMessage()
 	Mailer.SetHeader("From", smtp.Username)
 	for _, user := range users {
-		Mailer.SetHeader("To", *user.Email)
+		Mailer.SetHeader("To", user.Email)
 		Mailer.SetBody("text/html", body)
 		if err := Dialer.DialAndSend(); err != nil {
 			return err

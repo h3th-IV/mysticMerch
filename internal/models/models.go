@@ -85,6 +85,12 @@ type ResponseCartProducts struct {
 	Size        *string `json:"sze,omitempty"`
 }
 
+// a struct for email notifications
+type BroadcastNotification struct {
+	Subject string `json:"subject"`
+	Body    string `json:"body"` //for files such as html
+}
+
 // Oorder model
 type Order struct {
 	OrderID       *int      `json:"order_id"`

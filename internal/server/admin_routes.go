@@ -12,6 +12,6 @@ func SetAdminRoutes(router *mux.Router) {
 
 	//routes for admin
 	authChain := alice.New(utils.AdminRoute)
-	adminRouter.Handle("/dashboard", authChain.ThenFunc(api.AdminDashboard))
+	adminRouter.Handle("/dashboard", authChain.ThenFunc(api.AdminBroadcast))
 
 }

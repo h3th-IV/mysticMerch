@@ -119,6 +119,9 @@ func (dm *DBModel) GetAllUsers() ([]*models.ResponseUser, error) {
 		}
 		Users = append(Users, uSer)
 	}
+	if err := tx.Commit(); err != nil {
+		return nil, err
+	}
 	return Users, nil
 }
 

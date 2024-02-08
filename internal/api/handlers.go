@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/h3th-IV/mysticMerch/internal/admin"
 	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
@@ -374,7 +375,34 @@ func InstantBuy(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// admin send mail ##
-func AdminDashboard(w http.ResponseWriter, r *http.Request) {
+//Admin Dashboard ops
 
+// admin send mail ##
+func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
+	var notification *models.BroadcastNotification
+	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
+		http.Error(w, "Failed to decode json"+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	users, err := dataBase.GetAllUsers()
+	if err != nil {
+		http.Error(w, "Failed to retriev for Brodcast message"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := admin.MarketingEmail(users, notification.Subject, notification.Body); err != nil {
+		http.Error(w, "Failed to send broadcast message"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	response := map[string]interface{}{
+		"message": "Broadcast email send succesfully",
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response"+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+// send Transactional email to aparticular Customer
+func Transactional(w http.ResponseWriter, r *http.Request) {
 }
