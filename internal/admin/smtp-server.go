@@ -30,12 +30,12 @@ func NewSMTP() *SMTPServer {
 // trabsactional email sent to each user concerning the state of their transaction
 func TransactionalEmail(user *models.ResponseUser, subject, body string) error {
 	smtp := NewSMTP()
-	Dialer := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
-	Mailer := gomail.NewMessage()
-	Mailer.SetHeader("From", smtp.Username)
-	Mailer.SetHeader("To", user.Email)
-	Mailer.SetBody("text/html", body)
-	if err := Dialer.DialAndSend(Mailer); err != nil {
+	dialer := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
+	mailer := gomail.NewMessage()
+	mailer.SetHeader("From", smtp.Username)
+	mailer.SetHeader("To", user.Email)
+	mailer.SetBody("text/html", body)
+	if err := dialer.DialAndSend(mailer); err != nil {
 		return err
 	}
 	return nil
@@ -44,13 +44,13 @@ func TransactionalEmail(user *models.ResponseUser, subject, body string) error {
 // some form of Broadcast email
 func MarketingEmail(users []*models.ResponseUser, subject, body string) error {
 	smtp := NewSMTP()
-	Dialer := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
-	Mailer := gomail.NewMessage()
-	Mailer.SetHeader("From", smtp.Username)
+	dialer := gomail.NewDialer(smtp.Host, smtp.Port, smtp.Username, smtp.Password)
+	mailer := gomail.NewMessage()
+	mailer.SetHeader("From", smtp.Username)
 	for _, user := range users {
-		Mailer.SetHeader("To", user.Email)
-		Mailer.SetBody("text/html", body)
-		if err := Dialer.DialAndSend(); err != nil {
+		mailer.SetHeader("To", user.Email)
+		mailer.SetBody("text/html", body)
+		if err := dialer.DialAndSend(); err != nil {
 			return err
 		}
 	}

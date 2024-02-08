@@ -411,6 +411,11 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if notification.ResponseUser.Email == "" || notification.Body == "" || notification.Subject == "" {
+		http.Error(w, "User email, email body or email subject is empty", http.StatusInternalServerError)
+		return
+	}
+
 	if err := admin.TransactionalEmail(&notification.ResponseUser, notification.Subject, notification.Body); err != nil {
 		http.Error(w, "Failed to send email to user"+err.Error(), http.StatusInternalServerError)
 		return
