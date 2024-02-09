@@ -14,6 +14,7 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -50,7 +51,7 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := dataBase.AddProduct(*Product.ProductName, *Product.Description, *Product.Image, *Product.Price)
+	_, err := dataBase.AddProduct(Product.ProductName, Product.Description, Product.Image, Product.Price)
 	if err != nil {
 		utils.ServerError(w, "Failed to add product to store", err)
 		return
@@ -147,30 +148,35 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
-	err := r.ParseForm()
-	if err != nil {
-		utils.ServerError(w, "Failed to parse form.", err)
+	var user *models.RequestUser
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		http.Error(w, "Failed to decode user", http.StatusBadRequest)
 		return
 	}
+	// err := r.ParseForm()
+	// if err != nil {
+	// 	utils.ServerError(w, "Failed to parse form.", err)
+	// 	return
+	// }
 
-	firstName := r.FormValue("first_name")
-	lastName := r.FormValue("last_name")
-	email := r.FormValue("email")
-	passowrd := r.FormValue("password")
-	phoneNumber := r.FormValue("phone_number")
+	// firstName := r.FormValue("first_name")
+	// lastName := r.FormValue("last_name")
+	// email := r.FormValue("email")
+	// passowrd := r.FormValue("password")
+	// phoneNumber := r.FormValue("phone_number")
 
 	//validate user input as w don't trust user input
 	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{
-		{Value: firstName, Validator: "fName"}, // "first_name"
-		{Value: lastName, Validator: "lName"},
-		{Value: email, Validator: "email"},
-		{Value: passowrd, Validator: "password"},
+		{Value: user.FirstName, Validator: "fName"}, // "first_name"
+		{Value: user.LastName, Validator: "lName"},
+		{Value: user.Email, Validator: "email"},
+		{Value: user.Password, Validator: "password"},
 	})
 	if !isDetailsValid {
 		http.Error(w, "Invalid User Input.", http.StatusBadRequest)
 	}
 
-	err = dataBase.InsertUser(firstName, lastName, email, phoneNumber, passowrd)
+	err := dataBase.InsertUser(user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password)
 	if err != nil {
 		utils.ServerError(w, "Failed to create user.", err)
 		return
@@ -181,24 +187,31 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 // Login Post Handler ##
 func LogIn(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
-	if err := r.ParseForm(); err != nil {
-		utils.ServerError(w, "Failed to parse form.", err)
+
+	var Login *models.Login
+	if err := json.NewDecoder(r.Body).Decode(&Login); err != nil {
+		http.Error(w, "Failed to decode object", http.StatusBadRequest)
 		return
 	}
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	user, err := dataBase.AuthenticateUser(email, password)
+	// if err := r.ParseForm(); err != nil {
+	// 	utils.ServerError(w, "Failed to parse form.", err)
+	// 	return
+	// }
+	// email := r.FormValue("email")
+	// password := r.FormValue("password")
+	user, err := dataBase.AuthenticateUser(Login.Email)
 	if err != nil {
-		if errors.Is(err, utils.ErrInvalidCredentials) {
-			http.Error(w, "Invalid email or password", http.StatusUnauthorized)
-			return
-		}
-		utils.ServerError(w, "Failed to authenticate user.", err)
+		http.Error(w, "Unable to retrieve details", http.StatusUnauthorized)
+		return
+	}
+	passErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(Login.Password))
+	if passErr == bcrypt.ErrMismatchedHashAndPassword && passErr != nil {
+		http.Error(w, "Failed to Authenticate user", http.StatusUnauthorized)
 		return
 	}
 	var JWToken string
 	var tokenErr error
-	if email == os.Getenv("NIMDALIAME") {
+	if Login.Email == os.Getenv("NIMDALIAME") {
 		JWToken, tokenErr = utils.AdminToken(user, 10*time.Hour, os.Getenv("JWTISSUER"), os.Getenv("MYTH"))
 	} else {
 		JWToken, tokenErr = utils.GenerateToken(user, 2*time.Hour, os.Getenv("JWTISSUER"), os.Getenv("MYSTIC"))
@@ -342,7 +355,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//check if product exist in user cart
-	exist, err := dataBase.CheckProductExistInUserCart(user.ID, *product.ID)
+	exist, err := dataBase.CheckProductExistInUserCart(user.ID, product.ID)
 	if err != nil {
 		utils.ServerError(w, "Failed to check if Product exist in user's cart", err)
 		return
@@ -353,7 +366,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//update Product details
-	if err = dataBase.EditCartItem(user.ID, *product.ID, updateDetails.Quantity, updateDetails.Color, updateDetails.Size); err != nil {
+	if err = dataBase.EditCartItem(user.ID, product.ID, updateDetails.Quantity, updateDetails.Color, updateDetails.Size); err != nil {
 		utils.ServerError(w, "Failed to update product in user's cart.", err)
 		return
 	}
@@ -386,7 +399,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		utils.ServerError(w, "Failed to get product from store.", err)
 	}
-	exist, err := dataBase.CheckProductExistInUserCart(user.ID, *cartProduct.ID)
+	exist, err := dataBase.CheckProductExistInUserCart(user.ID, cartProduct.ID)
 	if err != nil {
 		utils.ServerError(w, "Failed to check if Product exist in user's cart", err)
 		return
@@ -403,7 +416,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to get product", err)
 		return
 	}
-	if err := dataBase.RemoveItemfromCart(user.ID, *cartItem.ID); err != nil {
+	if err := dataBase.RemoveItemfromCart(user.ID, cartItem.ID); err != nil {
 		utils.ServerError(w, "Failed to remove item from cart", err)
 		return
 	}
@@ -439,7 +452,7 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to fetch product", err)
 		return
 	}
-	item, err := dataBase.GetItemFromCart(user.ID, *dbPoduct.ID)
+	item, err := dataBase.GetItemFromCart(user.ID, dbPoduct.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			utils.ServerError(w, "Item not found in user's cart", err)

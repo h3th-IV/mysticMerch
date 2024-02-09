@@ -12,7 +12,7 @@ import (
 
 // init new user
 func NewUser(fName, LName, email, phoneNumber, password string) (*models.User, error) {
-	crypted, err := utils.EncryptPass([]byte(password))
+	crypted, err := utils.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
@@ -24,10 +24,10 @@ func NewUser(fName, LName, email, phoneNumber, password string) (*models.User, e
 
 	return &models.User{
 		UserID:      uuid,
-		FirstName:   &fName,
-		LastName:    &LName,
-		Email:       &email,
-		PhoneNumber: &phoneNumber,
+		FirstName:   fName,
+		LastName:    LName,
+		Email:       email,
+		PhoneNumber: phoneNumber,
 		Password:    crypted,
 	}, nil
 }
@@ -126,7 +126,7 @@ func (dm *DBModel) GetAllUsers() ([]*models.ResponseUser, error) {
 }
 
 // auth the user for login
-func (um *DBModel) AuthenticateUser(email, password string) (*models.User, error) {
+func (um *DBModel) AuthenticateUser(email string) (*models.User, error) {
 	query := `select id, password_hash from users where email = ?`
 
 	//use transaction
@@ -142,7 +142,7 @@ func (um *DBModel) AuthenticateUser(email, password string) (*models.User, error
 	}
 	defer stmt.Close()
 	user := models.User{}
-	err = stmt.QueryRow(email).Scan(&user.ID, &user.UserID, &user.FirstName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Password)
+	err = stmt.QueryRow(email).Scan(&user.ID, &user.Password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, utils.ErrInvalidCredentials
@@ -183,11 +183,11 @@ func (dm *DBModel) RemoveUser(user_id int) error {
 // create new address
 func NewAddress(user *models.ResponseUser, houseNo, str, city, postalCode string) *models.Address {
 	return &models.Address{
-		HouseNo:     &houseNo,
-		Street:      &str,
-		City:        &city,
-		PostalCode:  &postalCode,
-		UserPhoneNo: &user.PhoneNumber,
+		HouseNo:     houseNo,
+		Street:      str,
+		City:        city,
+		PostalCode:  postalCode,
+		UserPhoneNo: user.PhoneNumber,
 	}
 }
 

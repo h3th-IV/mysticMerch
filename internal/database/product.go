@@ -10,11 +10,11 @@ import (
 func NewProduct(name, description, image string, price uint64) (*models.Product, error) {
 	uuid, err := utils.GenerateUUID("product")
 	return &models.Product{
-		ProductID:   &uuid,
-		ProductName: &name,
-		Description: &description,
-		Image:       &image,
-		Price:       &price,
+		ProductID:   uuid,
+		ProductName: name,
+		Description: description,
+		Image:       image,
+		Price:       price,
 		Rating:      uint8(0),
 	}, err
 }
