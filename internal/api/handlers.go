@@ -180,7 +180,14 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to create user.", err)
 		return
 	}
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	response := map[string]interface{}{
+		"message": "User acconut created succesffuly",
+	}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		utils.ServerError(w, "Failed to encode response", err)
+		return
+	}
+	//http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 // Login Post Handler ##
