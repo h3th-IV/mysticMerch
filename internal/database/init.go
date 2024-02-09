@@ -16,7 +16,7 @@ type DBModel struct {
 func InitDB() (*sql.DB, error) {
 	//logger package
 	logger := utils.NewLogger(os.Stdout, os.Stderr)
-	constr := ""
+	constr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", os.Getenv("MM_USER"), os.Getenv("MM_PASSWORD"), os.Getenv("MM_HOST"), os.Getenv("MM_PORT"), os.Getenv("MM_DBNAME"))
 
 	//open databse pool
 	database, err := sql.Open("mysql", constr)

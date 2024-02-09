@@ -14,6 +14,8 @@ func SetAdminRoutes(router *mux.Router) {
 
 	//routes for admin
 	authChain := alice.New(utils.AdminRoute)
+	adminRouter.Handle("/newproduct", authChain.ThenFunc(api.AddItemtoStore)).Methods(http.MethodPost)
+	adminRouter.Handle("/removeproduct", authChain.ThenFunc(api.RemoveItemfromStore)).Methods(http.MethodDelete)
 	adminRouter.Handle("/broadcast", authChain.ThenFunc(api.AdminBroadcast)).Methods(http.MethodPost)
 	adminRouter.Handle("/transactional", authChain.ThenFunc(api.Transactional)).Methods(http.MethodPost)
 }

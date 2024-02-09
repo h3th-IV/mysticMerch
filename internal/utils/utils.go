@@ -146,9 +146,7 @@ func AdminToken(user *models.User, expiry time.Duration, issuer, secret string) 
 // Middleware to Auth specific routes
 func JWTAuthRoutes(next http.Handler, secret string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := LoadEnv(); err != nil {
-			return
-		}
+
 		//get JWToken from request
 		JWToken := r.Header.Get("Authorization")
 		token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
@@ -241,9 +239,6 @@ func GenerateUUID(elemenType string) (string, error) {
 
 // EncryptPass encrypts password using AES.
 func EncryptPass(password []byte) (string, error) {
-	if err := LoadEnv(); err != nil {
-		return "", err
-	}
 
 	key := []byte(os.Getenv("HADESKEY"))
 	//create aes block with provided key
@@ -267,10 +262,6 @@ func EncryptPass(password []byte) (string, error) {
 }
 
 func DecryptPass(cipherText string) (string, error) {
-	if err := LoadEnv(); err != nil {
-		return "", nil
-	}
-
 	key := []byte(os.Getenv("HADESKEY"))
 	//create a new block with key
 	block, err := aes.NewCipher(key)

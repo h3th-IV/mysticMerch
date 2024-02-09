@@ -252,8 +252,8 @@ func (dm *DBModel) ReturnUserAddress(userID int) ([]*models.Address, error) {
 }
 
 // reomve address
-func (dm *DBModel) ReomveAddress(userID, address_id int) error {
-	query := `delete * from address where address_id = ? and user_id = ? `
+func (dm *DBModel) RemoveAddress(userID, address_id int) error {
+	query := `delete from address where address_id = ? and user_id = ? `
 
 	tx, err := dm.DB.Begin()
 	if err != nil {

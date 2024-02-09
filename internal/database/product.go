@@ -56,7 +56,7 @@ func (dm *DBModel) AddProduct(name, description, image string, price uint64) (in
 }
 
 // out of units  --admin stuff
-func (dm *DBModel) RemoveProduct(productID int) error {
+func (dm *DBModel) RemoveProductFromStore(productUUID string) error {
 	query := `delete from products where product_id = ?`
 
 	tx, err := dm.DB.Begin()
@@ -71,7 +71,7 @@ func (dm *DBModel) RemoveProduct(productID int) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(productID)
+	_, err = stmt.Exec(productUUID)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (dm *DBModel) ViewProducts() ([]*models.ResponseProduct, error) {
 
 // get product for other Operations by product uuid
 func (dm *DBModel) GetProduct(productUUID string) (*models.Product, error) {
-	query := `select * from products where product_id = ?`
+	query := `select product_id, product_name, description, image, price, rating from products where product_id = ?`
 
 	tx, err := dm.DB.Begin()
 	if err != nil {
@@ -138,7 +138,7 @@ func (dm *DBModel) GetProduct(productUUID string) (*models.Product, error) {
 	defer row.Close()
 	var Product models.Product
 	if row.Next() {
-		err = row.Scan(&Product.ProductID, &Product.ProductName, &Product.Description, &Product.Price, &Product.Image)
+		err = row.Scan(&Product.ProductID, &Product.ProductName, &Product.Description, &Product.Image, &Product.Price, &Product.Rating)
 		if err != nil {
 			return nil, err
 		}

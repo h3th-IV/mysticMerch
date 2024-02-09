@@ -7,6 +7,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/h3th-IV/mysticMerch/internal/api"
 	"github.com/h3th-IV/mysticMerch/internal/database"
+	"github.com/h3th-IV/mysticMerch/internal/utils"
+	"github.com/justinas/alice"
 )
 
 var UserDB *database.DBModel
@@ -43,7 +45,11 @@ func (nfs neuteredFileSystem) Open(path string) (http.File, error) {
 func SetUserRoutes(router *mux.Router) {
 	UserRouter := router.PathPrefix("/user").Subrouter()
 
+	userMWchain := alice.New(utils.AuthRoute)
+
 	//routes for the user
-	UserRouter.HandleFunc("/signup", api.SignUp)
-	UserRouter.HandleFunc("/login", api.LogIn)
+	UserRouter.HandleFunc("/signup", api.SignUp).Methods(http.MethodPost)
+	UserRouter.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
+	UserRouter.Handle("/addaddress", userMWchain.ThenFunc(api.AddNewAddr)).Methods(http.MethodPost)
+	UserRouter.Handle("/removeaddress/{id:[0-9]+}", userMWchain.ThenFunc(api.RemoveAddress)).Methods(http.MethodDelete)
 }

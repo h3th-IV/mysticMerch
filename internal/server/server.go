@@ -13,6 +13,9 @@ import (
 func StartServer() {
 	// logger := utils.NewLogger(os.Stdout, os.Stderr)
 	//use alice to package potential middleware
+	if err := utils.LoadEnv(); err != nil {
+		return
+	}
 	middlewareChain := alice.New(utils.RequestLogger, utils.RecoverPanic)
 
 	router := mux.NewRouter()
