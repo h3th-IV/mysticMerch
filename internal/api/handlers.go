@@ -337,6 +337,10 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 
 	//get product
 	product, err := dataBase.GetProduct(updateDetails.ProductUUID)
+	if err != nil {
+		utils.ServerError(w, "Failed to get product", err)
+		return
+	}
 	//check if product exist in user cart
 	exist, err := dataBase.CheckProductExistInUserCart(user.ID, *product.ID)
 	if err != nil {
@@ -395,6 +399,10 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 
 	//check if product is a store item
 	cartItem, err := dataBase.GetProduct(product.ProductUUID)
+	if err != nil {
+		utils.ServerError(w, "Failed to get product", err)
+		return
+	}
 	if err := dataBase.RemoveItemfromCart(user.ID, *cartItem.ID); err != nil {
 		utils.ServerError(w, "Failed to remove item from cart", err)
 		return
@@ -427,6 +435,10 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dbPoduct, err := dataBase.GetProduct(product.ProductUUID)
+	if err != nil {
+		utils.ServerError(w, "Failed to fetch product", err)
+		return
+	}
 	item, err := dataBase.GetItemFromCart(user.ID, *dbPoduct.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
