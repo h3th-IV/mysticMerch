@@ -11,8 +11,8 @@ import (
 )
 
 // init new user
-func NewUser(fName, LName, email, phoneNumber, password string) (*models.User, error) {
-	crypted, err := utils.HashPassword(password)
+func NewUser(fName, lName, email, phoneNumber, password string) (*models.User, error) {
+	crypted, err := utils.EncryptPass([]byte(password))
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +25,7 @@ func NewUser(fName, LName, email, phoneNumber, password string) (*models.User, e
 	return &models.User{
 		UserID:      uuid,
 		FirstName:   fName,
-		LastName:    LName,
+		LastName:    lName,
 		Email:       email,
 		PhoneNumber: phoneNumber,
 		Password:    crypted,
@@ -39,7 +39,6 @@ func (dm *DBModel) InsertUser(fname, lname, email, phoneNumber, password string)
 		return err
 	}
 	query := `insert into users(user_id, first_name, last_name, email, phone_number, password_hash) values(?, ?, ?, ?, ?, ?)`
-
 	tx, err := dm.DB.Begin()
 	if err != nil {
 		return err
@@ -51,6 +50,7 @@ func (dm *DBModel) InsertUser(fname, lname, email, phoneNumber, password string)
 	if err != nil {
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(user.UserID, user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password)
 	if err != nil {

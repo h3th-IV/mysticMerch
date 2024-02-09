@@ -14,7 +14,6 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -148,7 +147,7 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
-	var user *models.RequestUser
+	var user models.RequestUser
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Failed to decode user", http.StatusBadRequest)
 		return
@@ -186,6 +185,10 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 // Login Post Handler ##
 func LogIn(w http.ResponseWriter, r *http.Request) {
+	if err := utils.LoadEnv(); err != nil {
+		http.Error(w, "Operation Failed", http.StatusInternalServerError)
+		return
+	}
 	defer dataBase.CloseDB()
 
 	var Login *models.Login
@@ -204,8 +207,8 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Unable to retrieve details", http.StatusUnauthorized)
 		return
 	}
-	passErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(Login.Password))
-	if passErr == bcrypt.ErrMismatchedHashAndPassword && passErr != nil {
+	passErr := utils.CompareCryptedAndPassword(Login.Password, user)
+	if passErr == utils.ErrMismatchedCryptAndPassword && passErr != nil {
 		http.Error(w, "Failed to Authenticate user", http.StatusUnauthorized)
 		return
 	}

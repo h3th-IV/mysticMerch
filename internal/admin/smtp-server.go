@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/h3th-IV/mysticMerch/internal/models"
+	"github.com/h3th-IV/mysticMerch/internal/utils"
 	"gopkg.in/gomail.v2"
 )
 
@@ -19,6 +20,9 @@ type SMTPServer struct {
 }
 
 func NewSMTP() *SMTPServer {
+	if err := utils.LoadEnv(); err != nil {
+		return nil
+	}
 	return &SMTPServer{
 		Host:     "smtp.protonmail.com",
 		Port:     465,

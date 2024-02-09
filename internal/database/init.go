@@ -14,6 +14,9 @@ type DBModel struct {
 }
 
 func InitDB() (*sql.DB, error) {
+	if err := utils.LoadEnv(); err != nil {
+		return nil, err
+	}
 	//logger package
 	logger := utils.NewLogger(os.Stdout, os.Stderr)
 	constr := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", os.Getenv("MM_USER"), os.Getenv("MM_PASSWORD"), os.Getenv("MM_HOST"), os.Getenv("MM_PORT"), os.Getenv("MM_DBNAME"))
