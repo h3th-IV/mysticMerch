@@ -47,9 +47,6 @@ func SetUserRoutes(router *mux.Router) {
 
 	userMWchain := alice.New(utils.AuthRoute)
 
-	//routes for the user
-	UserRouter.HandleFunc("/signup", api.SignUp).Methods(http.MethodPost)
-	UserRouter.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
 	UserRouter.Handle("/addaddress", userMWchain.ThenFunc(api.AddNewAddr)).Methods(http.MethodPost)
 	UserRouter.Handle("/removeaddress/{id:[0-9]+}", userMWchain.ThenFunc(api.RemoveAddress)).Methods(http.MethodDelete)
 }

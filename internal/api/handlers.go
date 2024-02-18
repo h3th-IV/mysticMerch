@@ -14,6 +14,7 @@ import (
 	"github.com/h3th-IV/mysticMerch/internal/database"
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -22,6 +23,21 @@ var (
 		DB: db,
 	}
 )
+
+func apiRequest(item any, w http.ResponseWriter, r *http.Request) {
+	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+		http.Error(w, "Failed to Decode json object", http.StatusBadRequest)
+		return
+	}
+}
+
+func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		utils.ServerError(w, "Failed to encode object", err)
+		return
+	}
+}
 
 // home Handler display a list products
 func Home(w http.ResponseWriter, r *http.Request) {
@@ -32,11 +48,12 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to get products. Please try again later.", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(products); err != nil {
-		utils.ServerError(w, "Failed to encode json object.", err)
-		return
+	response := map[string]interface{}{
+		"message": "Items retrived SUccesfully",
+		"items":   products,
 	}
+	apiResponse(response, w)
+
 }
 
 // admin stuff
@@ -45,10 +62,7 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 
 	//decode new item
 	var Product *models.Product
-	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
-		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
-		return
-	}
+	apiRequest(Product, w, r)
 
 	_, err := dataBase.AddProduct(Product.ProductName, Product.Description, Product.Image, Product.Price)
 	if err != nil {
@@ -59,11 +73,7 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "Operation was succesfull",
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode object", err)
-		return
-	}
+	apiResponse(response, w)
 }
 
 // admin stuff
@@ -72,10 +82,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 
 	//decode item -- out of stock item
 	var Product *models.RequestProduct
-	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
-		http.Error(w, "Failed to decode json object"+err.Error(), http.StatusBadRequest)
-		return
-	}
+	apiRequest(Product, w, r)
 
 	if err := dataBase.RemoveProductFromStore(Product.ProductUUID); err != nil {
 		utils.ServerError(w, "Failed to reomve itme from store", err)
@@ -83,21 +90,14 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := make(map[string]interface{})
-	response["message"] = "Operation was succefull"
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode json object", err)
-		return
-	}
+	response["message"] = "Item Removed Succefully"
+	apiResponse(response, w)
 }
 
 // admin send mail ##
 func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 	var notification *models.BroadcastNotification
-	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
-		http.Error(w, "Failed to decode json"+err.Error(), http.StatusBadRequest)
-		return
-	}
+	apiRequest(notification, w, r)
 
 	users, err := dataBase.GetAllUsers()
 	if err != nil {
@@ -109,21 +109,15 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := map[string]interface{}{
-		"message": "Broadcast email send succesfully",
+		"message": "Broadcast email sent succesfully",
 	}
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode response", err)
-		return
-	}
+	apiResponse(response, w)
 }
 
 // send Transactional email to aparticular Customer
 func Transactional(w http.ResponseWriter, r *http.Request) {
 	var notification *models.TransactionNotification
-	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
-		http.Error(w, "Failed to decode request"+err.Error(), http.StatusBadRequest)
-		return
-	}
+	apiRequest(notification, w, r)
 
 	if notification.ResponseUser.Email == "" || notification.Body == "" || notification.Subject == "" {
 		http.Error(w, "User email, email body or email subject is empty", http.StatusInternalServerError)
@@ -138,31 +132,14 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
 	response["message"] = "email sent Successfully"
 
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode response"+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	apiResponse(response, w)
 }
 
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	var user models.RequestUser
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, "Failed to decode user", http.StatusBadRequest)
-		return
-	}
-	// err := r.ParseForm()
-	// if err != nil {
-	// 	utils.ServerError(w, "Failed to parse form.", err)
-	// 	return
-	// }
-
-	// firstName := r.FormValue("first_name")
-	// lastName := r.FormValue("last_name")
-	// email := r.FormValue("email")
-	// passowrd := r.FormValue("password")
-	// phoneNumber := r.FormValue("phone_number")
+	apiRequest(user, w, r)
 
 	//validate user input as w don't trust user input
 	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{
@@ -183,10 +160,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "User acconut created succesffuly",
 	}
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode response", err)
-		return
-	}
+	apiResponse(response, w)
 	//http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
@@ -199,24 +173,16 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 
 	var Login *models.Login
-	if err := json.NewDecoder(r.Body).Decode(&Login); err != nil {
-		http.Error(w, "Failed to decode object", http.StatusBadRequest)
-		return
-	}
-	// if err := r.ParseForm(); err != nil {
-	// 	utils.ServerError(w, "Failed to parse form.", err)
-	// 	return
-	// }
-	// email := r.FormValue("email")
-	// password := r.FormValue("password")
+	apiRequest(Login, w, r)
+
 	user, err := dataBase.AuthenticateUser(Login.Email)
 	if err != nil {
 		http.Error(w, "Unable to retrieve details", http.StatusUnauthorized)
 		return
 	}
-	passErr := utils.CompareCryptedAndPassword(Login.Password, user)
-	if passErr == utils.ErrMismatchedCryptAndPassword && passErr != nil {
-		http.Error(w, "Failed to Authenticate user", http.StatusUnauthorized)
+	passErr := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(Login.Password))
+	if passErr == bcrypt.ErrMismatchedHashAndPassword && passErr != nil {
+		http.Error(w, "Password is incorect", http.StatusUnauthorized)
 		return
 	}
 	var JWToken string
@@ -231,12 +197,10 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resopnse := map[string]interface{}{
+		"message": "Login Succesfully",
 		"jwToken": JWToken,
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(resopnse); err != nil {
-		utils.ServerError(w, "Failed to encode json object", err)
-	}
+	apiResponse(resopnse, w)
 }
 
 // Serch product by query name
@@ -251,14 +215,12 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Product not available yet.", err)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-
-	//encode
-	if err = json.NewEncoder(w).Encode(Products); err != nil {
-		utils.ServerError(w, "Failed to encode products into JSON.", err)
-		return
+	response := map[string]interface{}{
+		"message": "product found",
+		"item":    Products,
 	}
+
+	apiResponse(response, w)
 }
 
 // veiw product ##
@@ -273,11 +235,12 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to Fetch Product", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(Product); err != nil {
-		utils.ServerError(w, "Failed to encode json object", err)
-		return
+	response := map[string]interface{}{
+		"message": "Product details found",
+		"item":    Product,
 	}
+	apiResponse(response, w)
+
 }
 
 //Cart Operations
@@ -292,17 +255,16 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	Products, err := dataBase.GetUserCart(user.ID)
+	Cart, err := dataBase.GetUserCart(user.ID)
 	if err != nil {
 		utils.ServerError(w, "Unable to get user's cart", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-
-	if err := json.NewEncoder(w).Encode(Products); err != nil {
-		utils.ServerError(w, "Failed to encode json object.", err)
-		return
+	response := map[string]interface{}{
+		"message": "User cart returned succefully",
+		"item":    Cart,
 	}
+	apiResponse(response, w)
 }
 
 // edit prduct ##
@@ -310,10 +272,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 
 	var product *models.RequestProduct
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		http.Error(w, "Failed to decode object", http.StatusBadRequest)
-		return
-	}
+	apiRequest(product, w, r)
 	//get user Id from token
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -332,12 +291,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	response["message"] = "Product added to user cart succesfully"
 	response["product"] = product
 
-	//set content Type#
-	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode json object: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
+	apiResponse(response, w)
 }
 
 // update cart details like add quantity, change color and size
@@ -345,10 +299,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	//parse Update details
 	var updateDetails *models.RequestProduct
-	if err := json.NewDecoder(r.Body).Decode(&updateDetails); err != nil {
-		http.Error(w, "Failed to decode object.", http.StatusBadRequest)
-		return
-	}
+	apiRequest(updateDetails, w, r)
 
 	//get user id from contxt
 	uuid := r.Context().Value(utils.UserIDkey).(string)
@@ -384,21 +335,14 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "Product details updated succesfully",
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode json object.", err)
-		return
-	}
+	apiResponse(response, w)
 }
 
 // edit prduct ##
 func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	var product *models.RequestProduct
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		http.Error(w, "Failed to decode object"+err.Error(), http.StatusBadRequest)
-		return
-	}
+	apiRequest(product, w, r)
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
@@ -505,7 +449,7 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 		"message": "Address succefully added",
 	}
 
-	w.Header().Set("Content-Tyep", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	if err = json.NewEncoder(w).Encode(response); err != nil {
 		utils.ServerError(w, "Failed to encode response.", err)
 		return

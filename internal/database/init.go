@@ -35,7 +35,7 @@ func InitDB() (*sql.DB, error) {
 		return nil, fmt.Errorf("err connecting to database: %v", err)
 	}
 
-	logger.InfoLogger.Println("connected to Database was succesfull")
+	logger.InfoLogger.Println("connected to Database succesfully")
 
 	return database, nil
 }

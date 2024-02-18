@@ -20,6 +20,8 @@ func StartServer() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", api.Home)
+	router.HandleFunc("/signup", api.SignUp).Methods(http.MethodPost)
+	router.HandleFunc("/login", api.LogIn).Methods(http.MethodPost)
 
 	//set Admin related routes
 	SetAdminRoutes(router)

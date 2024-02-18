@@ -12,7 +12,7 @@ import (
 
 // init new user
 func NewUser(fName, lName, email, phoneNumber, password string) (*models.User, error) {
-	crypted, err := utils.EncryptPass([]byte(password))
+	crypted, err := utils.HashPassword(password)
 	if err != nil {
 		return nil, err
 	}
