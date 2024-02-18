@@ -378,22 +378,14 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "Item reomved from cart successfully",
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode json object.", err)
-		return
-	}
-
+	apiResponse(response, w)
 }
 
 // GetItem from cart use list UserPorduct here ##
 func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 	dataBase.CloseDB()
 	var product *models.RequestProduct
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		http.Error(w, "Failed to decode object: "+err.Error(), http.StatusBadRequest)
-		return
-	}
+	apiRequest(product, w, r)
 
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -415,11 +407,11 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to get item from user's cart.", err)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(item); err != nil {
-		utils.ServerError(w, "Failed to encode item ito json object.", err)
-		return
+	response := map[string]interface{}{
+		"message": "Item retrived from user's cart",
+		"item":    item,
 	}
+	apiResponse(response, w)
 }
 
 // add new address for user
@@ -449,11 +441,7 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 		"message": "Address succefully added",
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err = json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode response.", err)
-		return
-	}
+	apiResponse(response, w)
 }
 
 // Remove address
@@ -483,12 +471,7 @@ func RemoveAddress(w http.ResponseWriter, r *http.Request) {
 		"message": "Address removed successfully",
 	}
 
-	// Set content type and encode response
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode response", err)
-		return
-	}
+	apiResponse(response, w)
 }
 
 // buy from cart ##
