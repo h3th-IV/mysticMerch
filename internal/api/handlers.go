@@ -142,14 +142,23 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	apiRequest(user, w, r)
 
 	//validate user input as w don't trust user input
-	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{
-		{Value: user.FirstName, Validator: "firstname"}, // "first_name"
-		{Value: user.LastName, Validator: "lastname"},
-		{Value: user.Email, Validator: "email"},
-		{Value: user.Password, Validator: "password"},
-	})
-	if !isDetailsValid {
-		http.Error(w, "Invalid User Input.", http.StatusBadRequest)
+	if !utils.ValidateFirstName(user.FirstName) {
+		http.Error(w, "Failed to validate user firstname", http.StatusBadRequest)
+		return
+	}
+
+	if !utils.ValidateLastName(user.LastName) {
+		http.Error(w, "Failed to Validate user lastname", http.StatusBadRequest)
+		return
+	}
+
+	if !utils.ValidateEmail(user.Email) {
+		http.Error(w, "Failed to validate email", http.StatusBadRequest)
+		return
+	}
+
+	if !utils.ValidatePassword(user.Password) {
+		http.Error(w, "Failed to validate password", http.StatusBadRequest)
 		return
 	}
 

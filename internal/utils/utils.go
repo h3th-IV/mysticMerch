@@ -222,6 +222,30 @@ func ValidateSignUpDetails(details []models.ValidAta) bool {
 	return true
 }
 
+func ValidateFirstName(firstName string) bool {
+	// Add your validation logic for first name
+	firstname := regexp.MustCompile("^[A-Za-z]+$")
+	return firstname.MatchString(firstName)
+}
+
+func ValidateLastName(lastName string) bool {
+	// Add your validation logic for last name
+	lastname := regexp.MustCompile("^[A-Za-z]+$")
+	return lastname.MatchString(lastName)
+}
+
+func ValidateEmail(email string) bool {
+	// Add your validation logic for email
+	emailer := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	return emailer.MatchString(email)
+}
+
+func ValidatePassword(password string) bool {
+	// Add your validation logic for password
+	passworder := regexp.MustCompile("^[a-zA-Z0-9!@#$%^&*()-_=+{}[]|;:'\",.<>?/`~]{8,15}$")
+	return passworder.MatchString(password)
+}
+
 func GenerateUUID(elemenType string) (string, error) {
 	//generate new uuuid
 	id, err := uuid.NewRandom()
