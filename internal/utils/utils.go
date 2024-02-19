@@ -196,8 +196,8 @@ func ServerError(w http.ResponseWriter, errMsg string, err error) {
 func ValidateSignUpDetails(details []models.ValidAta) bool {
 	email := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 	password := regexp.MustCompile("^[a-zA-Z0-9!@#$%^&*()-_=+{}[]|;:'\",.<>?/`~]{8,15}$")
-	fName := regexp.MustCompile("^[A-Za-z]+$")
-	lName := regexp.MustCompile("^[A-Za-z]+$")
+	firstname := regexp.MustCompile("^[A-Za-z]+$")
+	lastname := regexp.MustCompile("^[A-Za-z]+$")
 
 	for i := 0; i < len(details); i++ {
 		switch details[i].Validator {
@@ -209,12 +209,12 @@ func ValidateSignUpDetails(details []models.ValidAta) bool {
 			if !password.MatchString(details[i].Value) {
 				return false
 			}
-		case "f_name":
-			if !fName.MatchString(details[i].Value) {
+		case "firstname":
+			if !firstname.MatchString(details[i].Value) {
 				return false
 			}
-		case "lName":
-			if !lName.MatchString(details[i].Value) {
+		case "lastname":
+			if !lastname.MatchString(details[i].Value) {
 				return false
 			}
 		}

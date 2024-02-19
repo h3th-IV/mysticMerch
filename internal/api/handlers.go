@@ -143,13 +143,14 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 	//validate user input as w don't trust user input
 	isDetailsValid := utils.ValidateSignUpDetails([]models.ValidAta{
-		{Value: user.FirstName, Validator: "fName"}, // "first_name"
-		{Value: user.LastName, Validator: "lName"},
+		{Value: user.FirstName, Validator: "firstname"}, // "first_name"
+		{Value: user.LastName, Validator: "lastname"},
 		{Value: user.Email, Validator: "email"},
 		{Value: user.Password, Validator: "password"},
 	})
 	if !isDetailsValid {
 		http.Error(w, "Invalid User Input.", http.StatusBadRequest)
+		return
 	}
 
 	err := dataBase.InsertUser(user.FirstName, user.LastName, user.Email, user.PhoneNumber, user.Password)
@@ -158,7 +159,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := map[string]interface{}{
-		"message": "User acconut created succesffuly",
+		"message": "User account created succesffuly",
 	}
 	apiResponse(response, w)
 	//http.Redirect(w, r, "/login", http.StatusSeeOther)
@@ -219,7 +220,6 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 		"message": "product found",
 		"item":    Products,
 	}
-
 	apiResponse(response, w)
 }
 
@@ -352,6 +352,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	cartProduct, err := dataBase.GetProduct(product.ProductUUID)
 	if err != nil {
 		utils.ServerError(w, "Failed to get product from store.", err)
+		return
 	}
 	exist, err := dataBase.CheckProductExistInUserCart(user.ID, cartProduct.ID)
 	if err != nil {
