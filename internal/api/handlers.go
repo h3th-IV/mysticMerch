@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -25,10 +26,27 @@ var (
 )
 
 func apiRequest(item interface{}, w http.ResponseWriter, r *http.Request) {
-	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
-		http.Error(w, "Failed to Decode json object", http.StatusBadRequest)
+	defer r.Body.Close()
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read rquest body", http.StatusInternalServerError)
 		return
 	}
+
+	if err := json.Unmarshal(body, &item); err != nil {
+		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
+		return
+	}
+}
+
+func APIRequest(item interface{}, w http.ResponseWriter, r *http.Request) error {
+	decodeErr := json.NewDecoder(r.Body).Decode(&item)
+	if decodeErr != nil {
+		return decodeErr
+	}
+	defer r.Body.Close()
+	return nil
 }
 
 func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
@@ -139,7 +157,7 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	var user models.RequestUser
-	apiRequest(user, w, r)
+	APIRequest(user, w, r)
 
 	isDetails := utils.ValidateSignUpDetails([]models.ValidAta{
 		{Value: user.FirstName, Validator: "firstname"},
@@ -147,26 +165,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		{Value: user.Email, Validator: "email"},
 		{Value: user.Password, Validator: "password"},
 	})
-	// //validate user input as w don't trust user input
-	// if !utils.ValidateFirstName(user.FirstName) {
-	// 	http.Error(w, "Failed to validate user firstname", http.StatusBadRequest)
-	// 	return
-	// }
-
-	// if !utils.ValidateLastName(user.LastName) {
-	// 	http.Error(w, "Failed to Validate user lastname", http.StatusBadRequest)
-	// 	return
-	// }
-
-	// if !utils.ValidateEmail(user.Email) {
-	// 	http.Error(w, "Failed to validate email", http.StatusBadRequest)
-	// 	return
-	// }
-
-	// if !utils.ValidatePassword(user.Password) {
-	// 	http.Error(w, "Failed to validate password", http.StatusBadRequest)
-	// 	return
-	// }
+	//validate user input as w don't trust user input
 	if !isDetails {
 		http.Error(w, "Failed to Validate user details", http.StatusBadRequest)
 		return
