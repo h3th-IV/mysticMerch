@@ -24,7 +24,7 @@ var (
 	}
 )
 
-func apiRequest(item any, w http.ResponseWriter, r *http.Request) {
+func apiRequest(item interface{}, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		http.Error(w, "Failed to Decode json object", http.StatusBadRequest)
 		return
@@ -49,7 +49,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := map[string]interface{}{
-		"message": "Items retrived SUccesfully",
+		"message": "Items retrived succesfully",
 		"items":   products,
 	}
 	apiResponse(response, w)
@@ -141,24 +141,34 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	var user models.RequestUser
 	apiRequest(user, w, r)
 
-	//validate user input as w don't trust user input
-	if !utils.ValidateFirstName(user.FirstName) {
-		http.Error(w, "Failed to validate user firstname", http.StatusBadRequest)
-		return
-	}
+	isDetails := utils.ValidateSignUpDetails([]models.ValidAta{
+		{Value: user.FirstName, Validator: "firstname"},
+		{Value: user.LastName, Validator: "lastname"},
+		{Value: user.Email, Validator: "email"},
+		{Value: user.Password, Validator: "password"},
+	})
+	// //validate user input as w don't trust user input
+	// if !utils.ValidateFirstName(user.FirstName) {
+	// 	http.Error(w, "Failed to validate user firstname", http.StatusBadRequest)
+	// 	return
+	// }
 
-	if !utils.ValidateLastName(user.LastName) {
-		http.Error(w, "Failed to Validate user lastname", http.StatusBadRequest)
-		return
-	}
+	// if !utils.ValidateLastName(user.LastName) {
+	// 	http.Error(w, "Failed to Validate user lastname", http.StatusBadRequest)
+	// 	return
+	// }
 
-	if !utils.ValidateEmail(user.Email) {
-		http.Error(w, "Failed to validate email", http.StatusBadRequest)
-		return
-	}
+	// if !utils.ValidateEmail(user.Email) {
+	// 	http.Error(w, "Failed to validate email", http.StatusBadRequest)
+	// 	return
+	// }
 
-	if !utils.ValidatePassword(user.Password) {
-		http.Error(w, "Failed to validate password", http.StatusBadRequest)
+	// if !utils.ValidatePassword(user.Password) {
+	// 	http.Error(w, "Failed to validate password", http.StatusBadRequest)
+	// 	return
+	// }
+	if !isDetails {
+		http.Error(w, "Failed to Validate user details", http.StatusBadRequest)
 		return
 	}
 
