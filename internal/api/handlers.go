@@ -439,7 +439,7 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response := map[string]interface{}{
-		"message": "Address succefully added",
+		"message": "Address succesfully added",
 	}
 
 	apiResponse(response, w)
