@@ -41,9 +41,12 @@ func apiRequest(item interface{}, w http.ResponseWriter, r *http.Request) {
 }
 
 func APIRequest(item interface{}, w http.ResponseWriter, r *http.Request) error {
-	decodeErr := json.NewDecoder(r.Body).Decode(&item)
-	if decodeErr != nil {
-		return decodeErr
+	if r.Body == nil {
+		return errors.New("request body is nil")
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
+		return err
 	}
 	defer r.Body.Close()
 	return nil
