@@ -394,11 +394,11 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	//check if product is a store item
 	cartItem, err := dataBase.GetProduct(product.ProductUUID)
 	if err != nil {
-		utils.ServerError(w, "Failed to get product", err)
+		utils.ServerError(w, "failed to get product", err)
 		return
 	}
 	if err := dataBase.RemoveItemfromCart(user.ID, cartItem.ID); err != nil {
-		utils.ServerError(w, "Failed to remove item from cart", err)
+		utils.ServerError(w, "failed to remove item from cart", err)
 		return
 	}
 
@@ -412,7 +412,10 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 	dataBase.CloseDB()
 	var product *models.RequestProduct
-	apiRequest(product, r)
+	if err := apiRequest(product, r); err != nil {
+		http.Error(w, "failed to decode json object", http.StatusBadRequest)
+		return
+	}
 
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
