@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -25,26 +24,7 @@ var (
 	}
 )
 
-func apiRequest(item interface{}, w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Failed to read rquest body", http.StatusInternalServerError)
-		return
-	}
-
-	if err := json.Unmarshal(body, &item); err != nil {
-		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
-		return
-	}
-}
-
-func APIRequest(item interface{}, w http.ResponseWriter, r *http.Request) error {
-	if r.Body == nil {
-		return errors.New("request body is nil")
-	}
-
+func apiRequest(item interface{}, r *http.Request) error {
 	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
 		return err
 	}
@@ -83,7 +63,7 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 
 	//decode new item
 	var Product *models.Product
-	apiRequest(Product, w, r)
+	apiRequest(Product, r)
 
 	_, err := dataBase.AddProduct(Product.ProductName, Product.Description, Product.Image, Product.Price)
 	if err != nil {
@@ -103,7 +83,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 
 	//decode item -- out of stock item
 	var Product *models.RequestProduct
-	apiRequest(Product, w, r)
+	apiRequest(Product, r)
 
 	if err := dataBase.RemoveProductFromStore(Product.ProductUUID); err != nil {
 		utils.ServerError(w, "Failed to reomve itme from store", err)
@@ -118,7 +98,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 // admin send mail ##
 func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 	var notification *models.BroadcastNotification
-	apiRequest(notification, w, r)
+	apiRequest(notification, r)
 
 	users, err := dataBase.GetAllUsers()
 	if err != nil {
@@ -138,7 +118,7 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 // send Transactional email to aparticular Customer
 func Transactional(w http.ResponseWriter, r *http.Request) {
 	var notification *models.TransactionNotification
-	apiRequest(notification, w, r)
+	apiRequest(notification, r)
 
 	if notification.ResponseUser.Email == "" || notification.Body == "" || notification.Subject == "" {
 		http.Error(w, "User email, email body or email subject is empty", http.StatusInternalServerError)
@@ -160,8 +140,7 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	var user models.RequestUser
-	APIRequest(user, w, r)
-
+	apiRequest(user, r)
 	isDetails := utils.ValidateSignUpDetails([]models.ValidAta{
 		{Value: user.FirstName, Validator: "firstname"},
 		{Value: user.LastName, Validator: "lastname"},
@@ -195,7 +174,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 
 	var Login *models.Login
-	apiRequest(Login, w, r)
+	apiRequest(Login, r)
 
 	user, err := dataBase.AuthenticateUser(Login.Email)
 	if err != nil {
@@ -293,7 +272,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 
 	var product *models.RequestProduct
-	apiRequest(product, w, r)
+	apiRequest(product, r)
 	//get user Id from token
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -320,7 +299,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	//parse Update details
 	var updateDetails *models.RequestProduct
-	apiRequest(updateDetails, w, r)
+	apiRequest(updateDetails, r)
 
 	//get user id from contxt
 	uuid := r.Context().Value(utils.UserIDkey).(string)
@@ -363,7 +342,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	var product *models.RequestProduct
-	apiRequest(product, w, r)
+	apiRequest(product, r)
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
@@ -407,7 +386,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 	dataBase.CloseDB()
 	var product *models.RequestProduct
-	apiRequest(product, w, r)
+	apiRequest(product, r)
 
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
