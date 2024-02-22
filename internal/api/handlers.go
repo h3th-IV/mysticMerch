@@ -151,7 +151,7 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	var user models.RequestUser
-	if err := apiRequest(user, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
 		http.Error(w, "Failed decode json object", http.StatusBadRequest)
 		return
 	}
