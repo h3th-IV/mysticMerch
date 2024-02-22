@@ -35,7 +35,7 @@ func apiRequest(item interface{}, r *http.Request) error {
 func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "Failed to encode object", err)
+		utils.ServerError(w, "failed to encode object", err)
 		return
 	}
 }
