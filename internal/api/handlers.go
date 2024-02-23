@@ -24,14 +24,6 @@ var (
 	}
 )
 
-func apiRequest(item interface{}, r *http.Request) error {
-	if err := json.NewDecoder(r.Body).Decode(&item); err != nil {
-		return err
-	}
-	defer r.Body.Close()
-	return nil
-}
-
 func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(response); err != nil {
@@ -63,10 +55,11 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 
 	//decode new item
 	var Product *models.Product
-	if err := apiRequest(Product, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
 		http.Error(w, "Failed to decode json", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	_, err := dataBase.AddProduct(Product.ProductName, Product.Description, Product.Image, Product.Price)
 	if err != nil {
@@ -86,7 +79,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 
 	//decode item -- out of stock item
 	var Product *models.RequestProduct
-	if err := apiRequest(Product, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
 		return
 	}
@@ -104,7 +97,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 // admin send mail ##
 func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 	var notification *models.BroadcastNotification
-	if err := apiRequest(notification, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
 		return
 	}
@@ -126,7 +119,7 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 // send Transactional email to aparticular Customer
 func Transactional(w http.ResponseWriter, r *http.Request) {
 	var notification *models.TransactionNotification
-	if err := apiRequest(notification, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
 		return
 	}
@@ -186,9 +179,10 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer dataBase.CloseDB()
+	defer r.Body.Close()
 
 	var Login *models.Login
-	if err := apiRequest(Login, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&Login); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
@@ -289,7 +283,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 
 	var product *models.RequestProduct
-	if err := apiRequest(product, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
@@ -319,7 +313,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	//parse Update details
 	var updateDetails *models.RequestProduct
-	if err := apiRequest(updateDetails, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&updateDetails); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
@@ -365,7 +359,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
 	var product *models.RequestProduct
-	if err := apiRequest(product, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
@@ -412,7 +406,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 	dataBase.CloseDB()
 	var product *models.RequestProduct
-	if err := apiRequest(product, r); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
