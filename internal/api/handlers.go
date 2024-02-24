@@ -24,8 +24,11 @@ var (
 	}
 )
 
+// write api response in a go
 func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
+	//set header
 	w.Header().Set("Content-Type", "application/json")
+	//decode json
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		utils.ServerError(w, "failed to encode object", err)
 		return
@@ -60,13 +63,14 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-
+	//add product to database
 	_, err := dataBase.AddProduct(Product.ProductName, Product.Description, Product.Image, Product.Price)
 	if err != nil {
 		utils.ServerError(w, "Failed to add product to store", err)
 		return
 	}
 
+	//write and send response
 	response := map[string]interface{}{
 		"message": "Operation was succesfull",
 	}
@@ -76,6 +80,7 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 // admin stuff
 func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
+	defer r.Body.Close()
 
 	//decode item -- out of stock item
 	var Product *models.RequestProduct
@@ -96,6 +101,9 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 
 // admin send mail ##
 func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	defer dataBase.CloseDB()
+	//decode json object
 	var notification *models.BroadcastNotification
 	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
@@ -118,6 +126,9 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 
 // send Transactional email to aparticular Customer
 func Transactional(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	defer dataBase.CloseDB()
+
 	var notification *models.TransactionNotification
 	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
@@ -143,11 +154,15 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
 	defer dataBase.CloseDB()
-	var user models.RequestUser
+	defer r.Body.Close()
+
+	//decode object
+	var user *models.RequestUser
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, "Failed decode json object", http.StatusBadRequest)
+		http.Error(w, "Failed to decode json item", http.StatusBadRequest)
 		return
 	}
+
 	isDetails := utils.ValidateSignUpDetails([]models.ValidAta{
 		{Value: user.FirstName, Validator: "firstname"},
 		{Value: user.LastName, Validator: "lastname"},
@@ -174,6 +189,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 
 // Login Post Handler ##
 func LogIn(w http.ResponseWriter, r *http.Request) {
+	//Load env var
 	if err := utils.LoadEnv(); err != nil {
 		http.Error(w, "Operation Failed", http.StatusInternalServerError)
 		return
@@ -251,7 +267,6 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 		"item":    Product,
 	}
 	apiResponse(response, w)
-
 }
 
 //Cart Operations
@@ -266,11 +281,13 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//fecth cart
 	Cart, err := dataBase.GetUserCart(user.ID)
 	if err != nil {
 		utils.ServerError(w, "Unable to get user's cart", err)
 		return
 	}
+	//write response
 	response := map[string]interface{}{
 		"message": "User cart returned succefully",
 		"item":    Cart,
@@ -287,6 +304,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 	//get user Id from token
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -301,6 +319,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//write response
 	response := make(map[string]interface{})
 	response["message"] = "Product added to user cart succesfully"
 	response["product"] = product
@@ -317,6 +336,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	//get user id from contxt
 	uuid := r.Context().Value(utils.UserIDkey).(string)
@@ -404,12 +424,14 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 
 // GetItem from cart use list UserPorduct here ##
 func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
-	dataBase.CloseDB()
+	defer dataBase.CloseDB()
 	var product *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
+
+	defer r.Body.Close()
 
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -431,6 +453,7 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "Failed to get item from user's cart.", err)
 		return
 	}
+	//write response
 	response := map[string]interface{}{
 		"message": "Item retrived from user's cart",
 		"item":    item,
