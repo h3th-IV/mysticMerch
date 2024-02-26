@@ -81,9 +81,9 @@ var (
 
 	ErrInvalidCredentials = errors.New("err: invalid credentials")
 
-	ErrExsistingCrednetials       = errors.New("err: dupliacte Credentials")
+	ErrExsistingCrednetials       = errors.New("err: duplicate credentials")
 	MySQLErr                      *mysql.MySQLError
-	ErrMismatchedCryptAndPassword = errors.New("err: Paswword does not Match registered password")
+	ErrMismatchedCryptAndPassword = errors.New("err: password does not match registered password")
 )
 
 // Middleware to recover panic ##
