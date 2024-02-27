@@ -22,7 +22,7 @@ func SetCartRoutes(router *mux.Router) {
 
 	userMWchain := alice.New(utils.AuthRoute)
 	//cart operations //will require authentication MW
-	CartProdcts.Handle("/cart", userMWchain.ThenFunc(api.UserCart)).Methods(http.MethodGet)
+	CartProdcts.Handle("/cart", userMWchain.ThenFunc(api.GetUserCart)).Methods(http.MethodGet)
 	CartProdcts.Handle("/additem", userMWchain.ThenFunc(api.AddtoCart)).Methods(http.MethodPost)
 	CartProdcts.Handle("/updateitem", userMWchain.ThenFunc(api.UpdateProductDetails)).Methods(http.MethodPut)
 	CartProdcts.Handle("/removeitem", userMWchain.ThenFunc(api.RemovefromCart)).Methods(http.MethodDelete)

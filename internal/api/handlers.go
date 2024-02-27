@@ -38,7 +38,6 @@ func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
 
 // home Handler display a list products
 func Home(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
 	//get some list of prduct to display on the home page
 	products, err := dataBase.ViewProducts()
 	if err != nil {
@@ -51,13 +50,11 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		"items":   products,
 	}
 	apiResponse(response, w)
-
+	defer dataBase.CloseDB()
 }
 
 // admin stuff
 func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
-
 	//decode new item
 	var Product *models.Product
 	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
@@ -79,13 +76,11 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 		"message": "Operation was succesfull",
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // admin stuff
 func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
-	defer r.Body.Close()
-
 	//decode item -- out of stock item
 	var Product *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
@@ -93,6 +88,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	if err := dataBase.RemoveProductFromStore(Product.ProductUUID); err != nil {
 		utils.ReplaceLogger.Error("Failed to remove item from store", zap.Error(err))
@@ -103,12 +99,11 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
 	response["message"] = "Item Removed Succefully"
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // admin send mail ##
 func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	defer dataBase.CloseDB()
 	//decode json object
 	var notification *models.BroadcastNotification
 	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
@@ -116,6 +111,7 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 	users, err := dataBase.GetAllUsers()
 	if err != nil {
 		utils.ReplaceLogger.Error("Failed to retrive users for broadcast message", zap.Error(err))
@@ -131,19 +127,18 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 		"message": "Broadcast email sent succesfully",
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // send Transactional email to aparticular Customer
 func Transactional(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-	defer dataBase.CloseDB()
-
 	var notification *models.TransactionNotification
 	if err := json.NewDecoder(r.Body).Decode(&notification); err != nil {
 		utils.ReplaceLogger.Error("Failed to decode json", zap.Error(err))
 		http.Error(w, "Failed to decode json object", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	if notification.ResponseUser.Email == "" || notification.Body == "" || notification.Subject == "" {
 		http.Error(w, "User email, email body or email subject is empty", http.StatusInternalServerError)
@@ -160,13 +155,11 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 	response["message"] = "email sent Successfully"
 
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // signUp post form Hadler ##
 func SignUp(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
-	defer r.Body.Close()
-
 	//decode object
 	var user *models.RequestUser
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
@@ -174,6 +167,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to decode json item", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 
 	isDetails := utils.ValidateSignUpDetails([]models.ValidAta{
 		{Value: user.FirstName, Validator: "firstname"},
@@ -181,6 +175,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 		{Value: user.Email, Validator: "email"},
 		{Value: user.Password, Validator: "password"},
 	})
+
 	//validate user input as w don't trust user input
 	if !isDetails {
 		http.Error(w, "Failed to Validate user details", http.StatusBadRequest)
@@ -198,6 +193,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	apiResponse(response, w)
 	//http.Redirect(w, r, "/login", http.StatusSeeOther)
+	defer dataBase.CloseDB()
 }
 
 // Login Post Handler ##
@@ -208,7 +204,6 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Operation Failed", http.StatusInternalServerError)
 		return
 	}
-	defer dataBase.CloseDB()
 	defer r.Body.Close()
 
 	var Login *models.Login
@@ -245,11 +240,11 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		"jwToken": JWToken,
 	}
 	apiResponse(resopnse, w)
+	defer dataBase.CloseDB()
 }
 
 // Serch product by query name
 func SearchProduct(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
 	//get name from search query
 	query := r.URL.Query()
 	ProductName := query.Get("product_name")
@@ -265,11 +260,11 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 		"item":    Products,
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // veiw product ##
 func ViewProduct(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
 	Var := mux.Vars(r)
 	Product_id := Var["id"]
 
@@ -285,13 +280,13 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 		"item":    Product,
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 //Cart Operations
 
 // view user cart ##
-func UserCart(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
+func GetUserCart(w http.ResponseWriter, r *http.Request) {
 	uuid := (r.Context().Value(utils.UserIDkey)).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
@@ -313,12 +308,11 @@ func UserCart(w http.ResponseWriter, r *http.Request) {
 		"item":    Cart,
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // edit prduct ##
 func AddtoCart(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
-
 	var product *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		utils.ReplaceLogger.Error("Failed to decode json", zap.Error(err))
@@ -347,11 +341,11 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	response["product"] = product
 
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // update cart details like add quantity, change color and size
 func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
 	//parse Update details
 	var updateDetails *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&updateDetails); err != nil {
@@ -399,16 +393,17 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 		"message": "Product details updated succesfully",
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // edit prduct ##
 func RemovefromCart(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
 	var product *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
 		return
 	}
+	defer r.Body.Close()
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
@@ -448,14 +443,14 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := map[string]interface{}{
-		"message": "Item reomved from cart successfully",
+		"message": "Item removed from cart successfully",
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // GetItem from cart use list UserPorduct here ##
 func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
 	var product *models.RequestProduct
 	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
@@ -492,11 +487,11 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		"item":    item,
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // add new address for user
 func AddNewAddr(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -522,13 +517,12 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 		"message": "Address succesfully added",
 	}
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // Remove address
 // RemoveAddress handler removes the address for a user
 func RemoveAddress(w http.ResponseWriter, r *http.Request) {
-	defer dataBase.CloseDB()
-
 	// Extract user ID from context
 	userID := r.Context().Value(utils.UserIDkey).(int)
 
@@ -553,6 +547,7 @@ func RemoveAddress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiResponse(response, w)
+	defer dataBase.CloseDB()
 }
 
 // buy from cart ##
