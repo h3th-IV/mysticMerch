@@ -226,9 +226,11 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 	}
 	var JWToken string
 	var tokenErr error
+	//create  admin token
 	if Login.Email == os.Getenv("NIMDALIAME") {
 		JWToken, tokenErr = utils.AdminToken(user, 10*time.Hour, os.Getenv("JWTISSUER"), os.Getenv("MYTH"))
 	} else {
+		//create user token
 		JWToken, tokenErr = utils.GenerateToken(user, 2*time.Hour, os.Getenv("JWTISSUER"), os.Getenv("MYSTIC"))
 	}
 	if tokenErr != nil {
@@ -287,11 +289,11 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 
 // view user cart ##
 func GetUserCart(w http.ResponseWriter, r *http.Request) {
-	uuid := (r.Context().Value(utils.UserIDkey)).(string)
+	//get user Id from token
+	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		utils.ReplaceLogger.Error("Error getting user_id", zap.Error(err))
-		utils.ServerError(w, "Error getting user_id", err)
+		http.Error(w, "User Possibly Not Authenticated", http.StatusUnauthorized)
 		return
 	}
 

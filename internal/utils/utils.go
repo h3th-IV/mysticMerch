@@ -129,7 +129,7 @@ func GenerateToken(user *models.User, expiry time.Duration, issuer, secret strin
 func AdminToken(user *models.User, expiry time.Duration, issuer, secret string) (string, error) {
 	bestBefore := time.Now().Add(time.Hour * 10)
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user": user.UserID,
 		"exp":  bestBefore,
 		"iss":  issuer,

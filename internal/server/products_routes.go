@@ -18,15 +18,15 @@ func SetProductRoutes(router *mux.Router) {
 }
 
 func SetCartRoutes(router *mux.Router) {
-	CartProdcts := router.PathPrefix("/carts").Subrouter()
+	CartProducts := router.PathPrefix("/carts").Subrouter()
 
 	userMWchain := alice.New(utils.AuthRoute)
 	//cart operations //will require authentication MW
-	CartProdcts.Handle("/cart", userMWchain.ThenFunc(api.GetUserCart)).Methods(http.MethodGet)
-	CartProdcts.Handle("/additem", userMWchain.ThenFunc(api.AddtoCart)).Methods(http.MethodPost)
-	CartProdcts.Handle("/updateitem", userMWchain.ThenFunc(api.UpdateProductDetails)).Methods(http.MethodPut)
-	CartProdcts.Handle("/removeitem", userMWchain.ThenFunc(api.RemovefromCart)).Methods(http.MethodDelete)
-	CartProdcts.Handle("/item", userMWchain.ThenFunc(api.GetItemFromCart)).Methods(http.MethodGet)
-	CartProdcts.Handle("checkout", userMWchain.ThenFunc(api.BuyFromCart))
-	CartProdcts.Handle("/buy", userMWchain.ThenFunc(api.InstantBuy))
+	CartProducts.Handle("/cart", userMWchain.ThenFunc(api.GetUserCart)).Methods(http.MethodGet)
+	CartProducts.Handle("/additem", userMWchain.ThenFunc(api.AddtoCart)).Methods(http.MethodPost)
+	CartProducts.Handle("/updateitem", userMWchain.ThenFunc(api.UpdateProductDetails)).Methods(http.MethodPut)
+	CartProducts.Handle("/removeitem", userMWchain.ThenFunc(api.RemovefromCart)).Methods(http.MethodDelete)
+	CartProducts.Handle("/item", userMWchain.ThenFunc(api.GetItemFromCart)).Methods(http.MethodGet)
+	CartProducts.Handle("checkout", userMWchain.ThenFunc(api.BuyFromCart))
+	CartProducts.Handle("/buy", userMWchain.ThenFunc(api.InstantBuy))
 }

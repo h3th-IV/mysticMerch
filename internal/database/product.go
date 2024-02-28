@@ -23,7 +23,7 @@ func NewProduct(name, description, image string, price uint64) (*models.Product,
 
 // add new product by admin
 func (dm *DBModel) AddProduct(name, description, image string, price uint64) (int64, error) {
-	//set ratings to 0 initiallu
+	//set ratings to 0 initially
 	product, err := NewProduct(name, description, image, price)
 	if err != nil {
 		return 0, err
