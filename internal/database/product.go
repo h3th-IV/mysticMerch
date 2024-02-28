@@ -1,6 +1,8 @@
 package database
 
 import (
+	"errors"
+
 	"github.com/h3th-IV/mysticMerch/internal/models"
 	"github.com/h3th-IV/mysticMerch/internal/utils"
 )
@@ -22,8 +24,11 @@ func NewProduct(name, description, image string, price uint64) (*models.Product,
 /* admin operations*/
 
 // add new product by admin
-func (dm *DBModel) AddProduct(name, description, image string, price uint64) (int64, error) {
+func (dm *DBModel) AddProduct(adminID int, name, description, image string, price uint64) (int64, error) {
 	//set ratings to 0 initially
+	if adminID != 1 {
+		return 0, errors.New("only admin can add product")
+	}
 	product, err := NewProduct(name, description, image, price)
 	if err != nil {
 		return 0, err
