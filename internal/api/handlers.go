@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -50,24 +52,32 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		"items":   products,
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // admin stuff
 func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
-	//get Admin id
-	uuid := r.Context().Value(utils.UserIDkey).(string)
-	user, err := dataBase.GetUserbyUUID(uuid)
+	//test
+	_, err := fmt.Println("admin logger here")
 	if err != nil {
-		http.Error(w, "user not authentcated", http.StatusNetworkAuthenticationRequired)
+		log.Println("err", err)
 		return
 	}
+	//get Admin id
+	uuid := r.Context().Value(utils.UserIDkey).(string)
+	fmt.Println(uuid)
+	user, err := dataBase.GetUserbyUUID(uuid)
+	fmt.Println(user.ID, user.Email, user.LastName)
+	if err != nil {
+		http.Error(w, "user not authenticated", http.StatusNetworkAuthenticationRequired)
+		return
+	}
+	fmt.Println(user.ID)
 	if user.ID != 1 {
 		http.Error(w, "user not authorised", http.StatusUnauthorized)
 		return
 	}
 	//decode new item
-	var Product *models.Product
+	var Product *models.NewProduct
 	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
 		utils.ReplaceLogger.Error("failed to decode json", zap.Error(err))
 		http.Error(w, "failed to decode json", http.StatusBadRequest)
@@ -87,7 +97,6 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 		"message": "operation was succesfull",
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // admin stuff
@@ -122,7 +131,6 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
 	response["message"] = "item Removed Succefully"
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // admin send mail ##
@@ -161,7 +169,6 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 		"message": "broadcast email sent succesfully",
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // send Transactional email to aparticular Customer
@@ -200,7 +207,6 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 	response["message"] = "email sent successfully"
 
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // signUp post form Hadler ##
@@ -238,7 +244,6 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 	apiResponse(response, w)
 	//http.Redirect(w, r, "/login", http.StatusSeeOther)
-	defer dataBase.CloseDB()
 }
 
 // Login Post Handler ##
@@ -287,7 +292,6 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		"jwToken": JWToken,
 	}
 	apiResponse(resopnse, w)
-	defer dataBase.CloseDB()
 }
 
 // Serch product by query name
@@ -307,7 +311,6 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 		"item":    Products,
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // veiw product ##
@@ -327,7 +330,6 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 		"item":    Product,
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 //Cart Operations
@@ -355,7 +357,6 @@ func GetUserCart(w http.ResponseWriter, r *http.Request) {
 		"item":    Cart,
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // edit prduct ##
@@ -388,7 +389,6 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	response["product"] = product
 
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // update cart details like add quantity, change color and size
@@ -440,7 +440,6 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 		"message": "product details updated succesfully",
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // edit prduct ##
@@ -493,7 +492,6 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		"message": "item removed from cart successfully",
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // GetItem from cart use list UserPorduct here ##
@@ -534,7 +532,6 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		"item":    item,
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // add new address for user
@@ -564,7 +561,6 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 		"message": "address succesfully added",
 	}
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // Remove address
@@ -594,7 +590,6 @@ func RemoveAddress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiResponse(response, w)
-	defer dataBase.CloseDB()
 }
 
 // buy from cart ##
@@ -606,3 +601,10 @@ func BuyFromCart(w http.ResponseWriter, r *http.Request) {
 func InstantBuy(w http.ResponseWriter, r *http.Request) {
 
 }
+
+// func LogOut(w http.ResponseWriter, r *http.Request) {
+// 	defer dataBase.CloseDB()
+
+// 	r.Context().Value(utils.UserIDkey)
+// 	c := http.Cookie{}
+// }
