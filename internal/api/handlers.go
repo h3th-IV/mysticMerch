@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -57,14 +56,11 @@ func Home(w http.ResponseWriter, r *http.Request) {
 func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 	//get Admin id
 	uuid := r.Context().Value(utils.UserIDkey).(string)
-	fmt.Println(uuid)
 	user, err := dataBase.GetUserbyUUID(uuid)
-	fmt.Println(user.ID, user.Email, user.LastName)
 	if err != nil {
 		http.Error(w, "user not authenticated", http.StatusNetworkAuthenticationRequired)
 		return
 	}
-	fmt.Println(user.ID)
 	if user.ID != 1 {
 		http.Error(w, "user not authorised", http.StatusUnauthorized)
 		return

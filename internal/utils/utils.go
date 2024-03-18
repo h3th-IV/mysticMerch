@@ -158,7 +158,6 @@ func JWTAuthRoutes(next http.Handler, secret string) http.Handler {
 			return
 		}
 		tokenClaims, ok := token.Claims.(jwt.MapClaims)
-		fmt.Println(tokenClaims)
 		if !ok {
 			http.Error(w, "Invalid Token claims", http.StatusBadRequest)
 			return
