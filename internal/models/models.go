@@ -54,7 +54,7 @@ type Product struct {
 	ProductName string `json:"product_name"`
 	Description string `json:"description"`
 	Image       string `json:"image"`
-	Price       uint64 `json:"price"`
+	Price       int64  `json:"price"`
 	Rating      uint8  `json:"rating"`
 }
 
@@ -62,7 +62,7 @@ type NewProduct struct {
 	ProductName string `json:"product_name"`
 	Description string `json:"description"`
 	Image       string `json:"image"`
-	Price       uint64 `json:"price"`
+	Price       int64  `json:"price"`
 }
 
 type RequestProduct struct {

@@ -9,7 +9,7 @@ import (
 
 // TODO: push this to the products package.
 
-func NewProduct(name, description, image string, price uint64) (*models.Product, error) {
+func NewProduct(name, description, image string, price int64) (*models.Product, error) {
 	uuid, err := utils.GenerateUUID("product")
 	return &models.Product{
 		ProductID:   uuid,
@@ -24,7 +24,7 @@ func NewProduct(name, description, image string, price uint64) (*models.Product,
 /* admin operations*/
 
 // add new product by admin
-func (dm *DBModel) AddProduct(adminID int, name, description, image string, price uint64) (int64, error) {
+func (dm *DBModel) AddProduct(adminID int, name, description, image string, price int64) (int64, error) {
 	//set ratings to 0 initially
 	if adminID != 1 {
 		return 0, errors.New("only admin can add product")

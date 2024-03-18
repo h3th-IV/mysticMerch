@@ -158,12 +158,13 @@ func JWTAuthRoutes(next http.Handler, secret string) http.Handler {
 			return
 		}
 		tokenClaims, ok := token.Claims.(jwt.MapClaims)
+		fmt.Println(tokenClaims)
 		if !ok {
 			http.Error(w, "Invalid Token claims", http.StatusBadRequest)
 			return
 		}
 
-		userID, ok := tokenClaims["user_id"]
+		userID, ok := tokenClaims["user"]
 		if !ok {
 			http.Error(w, "User is not Authorized", http.StatusBadRequest)
 			return

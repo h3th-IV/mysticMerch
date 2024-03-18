@@ -127,7 +127,7 @@ func (dm *DBModel) GetAllUsers() ([]*models.ResponseUser, error) {
 
 // auth the user for login
 func (um *DBModel) AuthenticateUser(email string) (*models.User, error) {
-	query := `select id, password_hash from users where email = ?`
+	query := `select id, user_id, email, password_hash from users where email = ?`
 
 	//use transaction
 	tx, err := um.DB.Begin()
@@ -142,7 +142,7 @@ func (um *DBModel) AuthenticateUser(email string) (*models.User, error) {
 	}
 	defer stmt.Close()
 	user := models.User{}
-	err = stmt.QueryRow(email).Scan(&user.ID, &user.Password)
+	err = stmt.QueryRow(email).Scan(&user.ID, &user.UserID, &user.Email, &user.Password)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, utils.ErrInvalidCredentials

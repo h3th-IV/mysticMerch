@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
@@ -56,12 +55,6 @@ func Home(w http.ResponseWriter, r *http.Request) {
 
 // admin stuff
 func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
-	//test
-	_, err := fmt.Println("admin logger here")
-	if err != nil {
-		log.Println("err", err)
-		return
-	}
 	//get Admin id
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	fmt.Println(uuid)
