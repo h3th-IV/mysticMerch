@@ -49,20 +49,20 @@ type ResponseUser struct {
 
 // Products available in store.
 type Product struct {
-	ID          int    `json:"id"`         //auto increment
-	ProductID   string `json:"product_id"` //for non db ops uuid generated
-	ProductName string `json:"product_name"`
-	Description string `json:"description"`
-	Image       string `json:"image"`
-	Price       int64  `json:"price"`
-	Rating      uint8  `json:"rating"`
+	ID          int     `json:"id"`         //auto increment
+	ProductID   string  `json:"product_id"` //for non db ops uuid generated
+	ProductName string  `json:"product_name"`
+	Description string  `json:"description"`
+	Image       string  `json:"image"`
+	Price       float64 `json:"price"`
+	Rating      uint8   `json:"rating"`
 }
 
 type NewProduct struct {
-	ProductName string `json:"product_name"`
-	Description string `json:"description"`
-	Image       string `json:"image"`
-	Price       int64  `json:"price"`
+	ProductName string  `json:"product_name"`
+	Description string  `json:"description"`
+	Image       string  `json:"image"`
+	Price       float64 `json:"price"`
 }
 
 type RequestProduct struct {
