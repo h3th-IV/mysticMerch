@@ -65,6 +65,10 @@ type NewProduct struct {
 	Price       float64 `json:"price"`
 }
 
+// type NilProduct struct{
+// 	ProductUUID string
+// }
+
 type RequestProduct struct {
 	ProductUUID string `json:"product_id"`
 	Quantity    int    `json:"quantity"`
