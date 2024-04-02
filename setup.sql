@@ -35,8 +35,7 @@
         quantity INT,
         color VARCHAR(50),
         size VARCHAR(50),
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES products(id)
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
 
 
