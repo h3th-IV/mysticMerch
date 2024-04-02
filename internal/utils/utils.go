@@ -108,7 +108,6 @@ const (
 )
 
 func GenerateToken(user *models.User, expiry time.Duration, issuer, secret string) (string, error) {
-	fmt.Println(user)
 	//set expiry date
 	bestBefore := time.Now().Add(expiry)
 
@@ -165,7 +164,6 @@ func JWTAuthRoutes(next http.Handler, secret string) http.Handler {
 		}
 
 		userID, ok := tokenClaims["user"]
-		fmt.Println(userID)
 		if !ok {
 			http.Error(w, "User is not Authorized", http.StatusBadRequest)
 			return
