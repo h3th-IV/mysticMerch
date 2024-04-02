@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -353,6 +354,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	//get user Id from token
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
+	fmt.Println(user)
 	if err != nil {
 		http.Error(w, "user possibly not authenticated", http.StatusUnauthorized)
 		return

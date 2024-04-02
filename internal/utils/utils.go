@@ -114,9 +114,9 @@ func GenerateToken(user *models.User, expiry time.Duration, issuer, secret strin
 
 	//ceate jwt tkeo with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": user.UserID,
-		"epx":     bestBefore.Unix(),
-		"iss":     issuer,
+		"user": user.UserID,
+		"epx":  bestBefore.Unix(),
+		"iss":  issuer,
 	})
 
 	//generate token str and sign with seceret key
@@ -165,6 +165,7 @@ func JWTAuthRoutes(next http.Handler, secret string) http.Handler {
 		}
 
 		userID, ok := tokenClaims["user"]
+		fmt.Println(userID)
 		if !ok {
 			http.Error(w, "User is not Authorized", http.StatusBadRequest)
 			return

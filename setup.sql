@@ -26,7 +26,7 @@
     CREATE TABLE carts (
         cart_id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT,
-        product_id INT,
+        product_id VARCHAR(255),
         product_name VARCHAR(255),
         description LONGTEXT,
         price INT,
