@@ -108,6 +108,7 @@ const (
 )
 
 func GenerateToken(user *models.User, expiry time.Duration, issuer, secret string) (string, error) {
+	fmt.Println(user)
 	//set expiry date
 	bestBefore := time.Now().Add(expiry)
 

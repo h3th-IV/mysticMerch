@@ -350,13 +350,6 @@ func GetUserCart(w http.ResponseWriter, r *http.Request) {
 
 // edit prduct ##
 func AddtoCart(w http.ResponseWriter, r *http.Request) {
-	var product *models.RequestProduct
-	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
-		utils.ReplaceLogger.Error("failed to decode json", zap.Error(err))
-		http.Error(w, "failed to decode json object", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
 	//get user Id from token
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
@@ -364,6 +357,14 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user possibly not authenticated", http.StatusUnauthorized)
 		return
 	}
+
+	var product *models.RequestProduct
+	if err := json.NewDecoder(r.Body).Decode(&product); err != nil {
+		utils.ReplaceLogger.Error("failed to decode json", zap.Error(err))
+		http.Error(w, "failed to decode json object", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
 
 	err = dataBase.AddProductoCart(user.ID, product.Quantity, product.ProductUUID, product.Color, product.Size)
 	if err != nil {
