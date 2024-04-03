@@ -8,7 +8,27 @@ import (
 
 /* cart operations */
 
-// add product to user cart
+// check for product existence
+func (dm *DBModel) CheckProductExist(productID string) (int, error) {
+	query := `select exists (select 1 from products where product_id = ?) as product_exists`
+
+	tx, err := dm.DB.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return 0, err
+	}
+	var productExists int
+	err = stmt.QueryRow(productID).Scan(&productExists)
+	if err != nil {
+		return 0, err
+	}
+	return productExists, nil
+}
 
 // view user cart
 func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, error) {
