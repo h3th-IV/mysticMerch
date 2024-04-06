@@ -60,6 +60,28 @@ func (dm *DBModel) AddProduct(adminID int, name, description, image string, pric
 	return ProductId, nil
 }
 
+// check for product existence
+func (dm *DBModel) CheckProductExist(productID string) (int, error) {
+	query := `select exists (select 1 from products where product_id = ?) as product_exists`
+
+	tx, err := dm.DB.Begin()
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.Prepare(query)
+	if err != nil {
+		return 0, err
+	}
+	var productExists int
+	err = stmt.QueryRow(productID).Scan(&productExists)
+	if err != nil {
+		return 0, err
+	}
+	return productExists, nil
+}
+
 // out of units  --admin stuff
 func (dm *DBModel) RemoveProductFromStore(productUUID string) error {
 	query := `delete from products where product_id = ?`
