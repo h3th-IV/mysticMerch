@@ -370,6 +370,10 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 
 	productExist, err := dataBase.CheckProductExist(product.ProductUUID)
 	fmt.Println(productExist)
+	if productExist != 1 {
+		utils.ReplaceLogger.Error("failed to retrive product, product may not exist in store")
+		utils.ServerError(w, "failed to retrive product, product may not exist in store", err)
+	}
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to retrieve product from store, product might not exist", zap.Error(err))
 		utils.ServerError(w, "failed to retrieve product from store, product might not exists", err)
