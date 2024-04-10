@@ -79,7 +79,7 @@ func (dm *DBModel) AddProductoCart(userID, quantity int, productUUID string, col
 
 // check for product in user cart
 func (dm *DBModel) CheckProductExistInUserCart(userid, productId int) (bool, error) {
-	query := `select count(*) from products where user_id = ? and product_id = ?`
+	query := `select count(*) from carts where user_id = ? and product_id = ?`
 	tx, err := dm.DB.Begin()
 	if err != nil {
 		return false, err
@@ -95,6 +95,7 @@ func (dm *DBModel) CheckProductExistInUserCart(userid, productId int) (bool, err
 	if countErr != nil {
 		return false, countErr
 	}
+	fmt.Println(count)
 	return count > 0, nil
 }
 
