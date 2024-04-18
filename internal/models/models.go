@@ -85,6 +85,10 @@ type ResponseProduct struct {
 	Image       string `json:"image"`
 }
 
+type RemoveProduct struct {
+	ProductUUID string `json:"product_id"`
+}
+
 // Produts associated with the user(like ordered product)
 type UserProducts struct {
 	ProductID   int    `json:"product_id"`

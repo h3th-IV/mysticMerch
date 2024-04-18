@@ -61,7 +61,7 @@ func (dm *DBModel) AddProduct(adminID int, name, description, image string, pric
 }
 
 // check for product existence
-func (dm *DBModel) CheckProductExist(productID string) (int, error) {
+func (dm *DBModel) CheckProductExist(productUUID string) (int, error) {
 	query := `select exists (select 1 from products where product_id = ?) as product_exists`
 
 	tx, err := dm.DB.Begin()
@@ -75,7 +75,7 @@ func (dm *DBModel) CheckProductExist(productID string) (int, error) {
 		return 0, err
 	}
 	var productExists int
-	err = stmt.QueryRow(productID).Scan(&productExists)
+	err = stmt.QueryRow(productUUID).Scan(&productExists)
 	if err != nil {
 		return 0, err
 	}
