@@ -468,7 +468,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		utils.ServerError(w, "failed to check if product not in user store", err)
 		return
 	}
-	if instore != 0 {
+	if instore != 1 {
 		utils.ReplaceLogger.Error("product not found in store", zap.Error(err))
 		utils.ServerError(w, "product not found in store", err)
 		return
@@ -486,7 +486,6 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Product gotten succesfully")
 	if err := dataBase.RemoveItemfromCart(user.ID, product.ProductUUID); err != nil {
 		utils.ReplaceLogger.Error("failed to remove item from cart", zap.Error(err))
 		utils.ServerError(w, "failed to remove item from cart", err)
