@@ -104,7 +104,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//decode item -- out of stock item
-	var Product *models.RequestProduct
+	var Product *models.RemoveProduct
 	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
 		utils.ReplaceLogger.Error("failed to decode json", zap.Error(err))
 		http.Error(w, "failed to decode json object", http.StatusBadRequest)
