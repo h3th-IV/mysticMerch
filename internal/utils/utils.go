@@ -15,6 +15,7 @@ import (
 	"os"
 	"regexp"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -147,9 +148,11 @@ func AdminToken(user *models.User, expiry time.Duration, issuer, secret string) 
 func JWTAuthRoutes(next http.Handler, secret string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		//get JWToken from request
-		JWToken := r.Header.Get("Authorization")
-		token, err := jwt.Parse(JWToken, func(t *jwt.Token) (interface{}, error) {
+		//get AuthToken from request
+		AuthToken := r.Header.Get("Authorization")
+		jwtoken := strings.Split(AuthToken, " ")[1]
+
+		token, err := jwt.Parse(jwtoken, func(t *jwt.Token) (interface{}, error) {
 			return []byte(secret), nil
 		})
 
@@ -188,9 +191,13 @@ func AdminRoute(next http.Handler) http.Handler {
 
 // used for all internal server Error
 func ServerError(w http.ResponseWriter, errMsg string, err error) {
+	fmt.Println("Reaxcher 1")
 	errTrace := fmt.Sprintf("%v\n%v", err.Error(), debug.Stack())
+	fmt.Println("Reaxcher 2")
 	ReplaceLogger.Error(errTrace)
+	fmt.Println("Reaxcher 3")
 	http.Error(w, errMsg, http.StatusInternalServerError)
+	fmt.Println("Reaxcher 4")
 }
 
 func ValidateSignUpDetails(details []models.ValidAta) bool {

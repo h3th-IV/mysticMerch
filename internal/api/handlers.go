@@ -465,30 +465,47 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	instore, err := dataBase.CheckProductExist(product.ProductUUID)
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to check if product not in user store", zap.Error(err))
+		response := map[string]interface{}{
+			"message": "failed to check if product not in user store",
+		}
+		apiResponse(response, w)
 		utils.ServerError(w, "failed to check if product not in user store", err)
 		return
 	}
 	if instore != 1 {
 		utils.ReplaceLogger.Error("product not found in store", zap.Error(err))
-		utils.ServerError(w, "product not found in store", err)
+		response := map[string]interface{}{
+			"message": "product not found in store",
+		}
+		apiResponse(response, w)
 		return
 	}
+
 	//check if product in user cart
 	exist, err := dataBase.CheckProductExistInUserCart(user.ID, product.ProductUUID)
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to check if product exist in user cart", zap.Error(err))
-		utils.ServerError(w, "failed to check if Product exist in user's cart", err)
+		response := map[string]interface{}{
+			"message": "failed to check if product not in user store",
+		}
+		apiResponse(response, w)
 		return
 	}
 	//check existence of product
 	if !exist {
-		utils.ServerError(w, "product not found in user's cart.", err)
+		response := map[string]interface{}{
+			"message": "product not found in user",
+		}
+		apiResponse(response, w)
 		return
 	}
 
 	if err := dataBase.RemoveItemfromCart(user.ID, product.ProductUUID); err != nil {
-		utils.ReplaceLogger.Error("failed to remove item from cart", zap.Error(err))
-		utils.ServerError(w, "failed to remove item from cart", err)
+		utils.ReplaceLogger.Error("failed to remove item from user's cart", zap.Error(err))
+		response := map[string]interface{}{
+			"message": "failed to remove item from user's cart",
+		}
+		apiResponse(response, w)
 		return
 	}
 
