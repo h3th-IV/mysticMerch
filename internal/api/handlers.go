@@ -43,11 +43,15 @@ func Home(w http.ResponseWriter, r *http.Request) {
 	products, err := dataBase.ViewProducts()
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to get product", zap.Error(err))
-		utils.ServerError(w, "failed to get products. Please try again later.", err)
+		response := map[string]interface{}{
+			"message": "failed to get products",
+		}
+		http.Error(w, "failed to get products", http.StatusNotFound)
+		apiResponse(response, w)
 		return
 	}
 	response := map[string]interface{}{
-		"message": "items retrived succesfully",
+		"message": "items retreived succesfully",
 		"items":   products,
 	}
 	apiResponse(response, w)
@@ -468,8 +472,8 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "failed to check if product not in user store",
 		}
+		http.Error(w, "", http.StatusInternalServerError)
 		apiResponse(response, w)
-		utils.ServerError(w, "failed to check if product not in user store", err)
 		return
 	}
 	if instore != 1 {
@@ -477,6 +481,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "product not found in store",
 		}
+		http.Error(w, "", http.StatusNotFound)
 		apiResponse(response, w)
 		return
 	}
