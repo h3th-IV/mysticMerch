@@ -481,7 +481,6 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "product not found in store",
 		}
-		http.Error(w, "", http.StatusNotFound)
 		apiResponse(response, w)
 		return
 	}
@@ -493,6 +492,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "failed to check if product not in user store",
 		}
+		http.Error(w, "", http.StatusInternalServerError)
 		apiResponse(response, w)
 		return
 	}
