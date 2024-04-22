@@ -32,7 +32,7 @@ func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	//decode json
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		utils.ServerError(w, "failed to encode object", err)
+		http.Error(w, "failed to encode json object", http.StatusInternalServerError)
 		return
 	}
 }
@@ -445,7 +445,7 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	uuid := r.Context().Value(utils.UserIDkey).(string)
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		utils.ServerError(w, "failed to retreive user id.", err)
+		utils.ReplaceLogger.Error("failed to retrieve user id", zap.Error(err))
 		http.Error(w, "failed to retrieve user id", http.StatusInternalServerError)
 		return
 	}
@@ -629,11 +629,11 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
-		utils.ServerError(w, "failed to retrieve user id", err)
+		http.Error(w, "failed to retrieve user id", http.StatusInternalServerError)
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		utils.ServerError(w, "failed to parse form", err)
+		http.Error(w, "failed to parse form", http.StatusInternalServerError)
 		return
 	}
 	house_no := r.FormValue("house_no")
@@ -666,7 +666,7 @@ func RemoveAddress(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	addressID, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		utils.ServerError(w, "invalid address id", err)
+		http.Error(w, "invalid address id", http.StatusBadRequest)
 		return
 	}
 

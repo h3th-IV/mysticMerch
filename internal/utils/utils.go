@@ -14,7 +14,6 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"runtime/debug"
 	"strings"
 	"time"
 
@@ -95,7 +94,7 @@ func RecoverPanic(next http.Handler) http.Handler {
 				//if panic close connection
 				w.Header().Set("Connection", "Close")
 				//write internal server error
-				ServerError(w, "Connection Closed inabruptly", fmt.Errorf("%v", err))
+				http.Error(w, "connection closed inabruptly", http.StatusInternalServerError)
 			}
 		}()
 		next.ServeHTTP(w, r)
@@ -190,15 +189,6 @@ func AdminRoute(next http.Handler) http.Handler {
 }
 
 // used for all internal server Error
-func ServerError(w http.ResponseWriter, errMsg string, err error) {
-	fmt.Println("Reaxcher 1")
-	errTrace := fmt.Sprintf("%v\n%v", err.Error(), debug.Stack())
-	fmt.Println("Reaxcher 2")
-	ReplaceLogger.Error(errTrace)
-	fmt.Println("Reaxcher 3")
-	http.Error(w, errMsg, http.StatusInternalServerError)
-	fmt.Println("Reaxcher 4")
-}
 
 func ValidateSignUpDetails(details []models.ValidAta) bool {
 	email := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
