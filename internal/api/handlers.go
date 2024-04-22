@@ -27,10 +27,11 @@ var (
 )
 
 // write api response in a go
-func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
+func apiResponse(response map[string]interface{}, w http.ResponseWriter, code int) {
 	//set header
 	w.Header().Set("Content-Type", "application/json")
 	//decode json
+	http.Error(w, "", code)
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		utils.ServerError(w, "failed to encode object", err)
 		return
@@ -46,15 +47,14 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "failed to get products",
 		}
-		http.Error(w, "failed to get products", http.StatusNotFound)
-		apiResponse(response, w)
+		apiResponse(response, w, http.StatusNotFound)
 		return
 	}
 	response := map[string]interface{}{
 		"message": "items retreived succesfully",
 		"items":   products,
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // admin stuff
@@ -90,7 +90,7 @@ func AddItemtoStore(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "operation was succesfull",
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // admin stuff
@@ -124,7 +124,7 @@ func RemoveItemfromStore(w http.ResponseWriter, r *http.Request) {
 
 	response := make(map[string]interface{})
 	response["message"] = "item Removed Succefully"
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // admin send mail ##
@@ -162,7 +162,7 @@ func AdminBroadcast(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "broadcast email sent succesfully",
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // send Transactional email to aparticular Customer
@@ -200,7 +200,7 @@ func Transactional(w http.ResponseWriter, r *http.Request) {
 	response := make(map[string]interface{})
 	response["message"] = "email sent successfully"
 
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // signUp post form Hadler ##
@@ -236,7 +236,7 @@ func SignUp(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "user account created succesffuly",
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 	//http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
@@ -285,7 +285,7 @@ func LogIn(w http.ResponseWriter, r *http.Request) {
 		"message": "login Succesfully",
 		"jwToken": JWToken,
 	}
-	apiResponse(resopnse, w)
+	apiResponse(resopnse, w, http.StatusOK)
 }
 
 // Serch product by query name
@@ -304,7 +304,7 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 		"message": "product found",
 		"item":    Products,
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // veiw product ##
@@ -323,7 +323,7 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 		"message": "product details found",
 		"item":    Product,
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 //Cart Operations
@@ -350,7 +350,7 @@ func GetUserCart(w http.ResponseWriter, r *http.Request) {
 		"message": "user cart returned succefully",
 		"item":    Cart,
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // edit prduct ##
@@ -395,7 +395,7 @@ func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	response["message"] = "product added to user cart succesfully"
 	response["product"] = product
 
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // update cart details like add quantity, change color and size
@@ -413,6 +413,10 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
 		utils.ServerError(w, "failed to retreive user id.", err)
+		response := map[string]interface{}{
+			"message": "failed to retrieve user id",
+		}
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 
@@ -420,33 +424,46 @@ func UpdateProductDetails(w http.ResponseWriter, r *http.Request) {
 	product, err := dataBase.GetProduct(updateDetails.ProductUUID)
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to get product", zap.Error(err))
-		utils.ServerError(w, "failed to get product", err)
+		response := map[string]interface{}{
+			"message": "failed to get product",
+		}
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
+
 	//check if product exist in user cart
 	exist, err := dataBase.CheckProductExistInUserCart(user.ID, product.ProductID)
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to check if product exist in user cart", zap.Error(err))
-		utils.ServerError(w, "failed to check if Product exist in user's cart", err)
+		response := map[string]interface{}{
+			"message": "failed to check if product exist in user cart",
+		}
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 	if !exist {
 		utils.ReplaceLogger.Error("product does not exist in user cart", zap.Error(err))
-		utils.ServerError(w, "product not found in user's cart", err)
+		response := map[string]interface{}{
+			"message": "product does not exist in user cart",
+		}
+		apiResponse(response, w, http.StatusNotFound)
 		return
 	}
 
 	//update Product details
 	if err = dataBase.EditCartItem(user.ID, product.ID, updateDetails.Quantity, updateDetails.Color, updateDetails.Size); err != nil {
-		utils.ReplaceLogger.Error("failed to update  product details in user cart", zap.Error(err))
-		utils.ServerError(w, "failed to update product in user's cart.", err)
+		utils.ReplaceLogger.Error("failed to update product details", zap.Error(err))
+		response := map[string]interface{}{
+			"message": "failed to update product details",
+		}
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]interface{}{
 		"message": "product details updated succesfully",
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // remove product from user cart
@@ -461,7 +478,10 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	user, err := dataBase.GetUserbyUUID(uuid)
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to get user id", zap.Error(err))
-		utils.ServerError(w, "failed to get user id", err)
+		response := map[string]interface{}{
+			"message": "failed to get user id",
+		}
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 
@@ -472,8 +492,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "failed to check if product not in user store",
 		}
-		http.Error(w, "", http.StatusInternalServerError)
-		apiResponse(response, w)
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 	if instore != 1 {
@@ -481,7 +500,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "product not found in store",
 		}
-		apiResponse(response, w)
+		apiResponse(response, w, http.StatusNotFound)
 		return
 	}
 
@@ -492,16 +511,15 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "failed to check if product not in user store",
 		}
-		http.Error(w, "", http.StatusInternalServerError)
-		apiResponse(response, w)
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 	//check existence of product
 	if !exist {
 		response := map[string]interface{}{
-			"message": "product not found in user",
+			"message": "product not found in user's cart",
 		}
-		apiResponse(response, w)
+		apiResponse(response, w, http.StatusNotFound)
 		return
 	}
 
@@ -510,14 +528,14 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"message": "failed to remove item from user's cart",
 		}
-		apiResponse(response, w)
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]interface{}{
 		"message": "item removed from cart successfully",
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // GetItem from cart use list UserPorduct here ##
@@ -546,10 +564,16 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			utils.ReplaceLogger.Error("item not found in user cart", zap.Error(err))
-			utils.ServerError(w, "item not found in user's cart", err)
+			response := map[string]interface{}{
+				"message": "item not found in user cart",
+			}
+			apiResponse(response, w, http.StatusNotFound)
 			return
 		}
-		utils.ServerError(w, "failed to get item from user's cart.", err)
+		response := map[string]interface{}{
+			"message": "failed to get item from user's cart",
+		}
+		apiResponse(response, w, http.StatusInternalServerError)
 		return
 	}
 	//write response
@@ -557,7 +581,7 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 		"message": "item retrived from user's cart",
 		"item":    item,
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // add new address for user
@@ -586,7 +610,7 @@ func AddNewAddr(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message": "address succesfully added",
 	}
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // Remove address
@@ -615,7 +639,7 @@ func RemoveAddress(w http.ResponseWriter, r *http.Request) {
 		"message": "address removed successfully",
 	}
 
-	apiResponse(response, w)
+	apiResponse(response, w, http.StatusOK)
 }
 
 // buy from cart ##
