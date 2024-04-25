@@ -26,7 +26,7 @@ var (
 	}
 )
 
-// write api response in a go
+// use to write all API responses
 func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
 	//set header
 	w.Header().Set("Content-Type", "application/json")
@@ -40,7 +40,7 @@ func apiResponse(response map[string]interface{}, w http.ResponseWriter) {
 // home Handler display a list products
 func Home(w http.ResponseWriter, r *http.Request) {
 	//get some list of prduct to display on the home page
-	products, err := dataBase.ViewProducts()
+	products, err := dataBase.ViewHomeProducts()
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to get product", zap.Error(err))
 		response := map[string]interface{}{

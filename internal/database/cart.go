@@ -34,7 +34,7 @@ func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, erro
 	for rows.Next() {
 		//initialize pointer first
 		userProducts := &models.ResponseCartProducts{}
-		err := rows.Scan(&userProducts.ProductName, &userProducts.Price, &userProducts.Rating, &userProducts.Quantity, &userProducts.Color, userProducts.Size)
+		err := rows.Scan(&userProducts.ProductName, &userProducts.Price, &userProducts.Rating, &userProducts.Image, &userProducts.Quantity, &userProducts.Color, &userProducts.Size)
 		if err != nil {
 			return nil, err
 		}

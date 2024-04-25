@@ -25,17 +25,18 @@ func InitDB() (*sql.DB, error) {
 	database, err := sql.Open("mysql", constr)
 	if err != nil {
 		logger.ErrLogger.Fatal(err)
-		return nil, fmt.Errorf("err creating database pool: %v", err)
+		os.Exit(1)
 	}
 
 	//try database connection
 	err = database.Ping()
 	if err != nil {
 		database.Close()
-		return nil, fmt.Errorf("err connecting to database: %v", err)
+		logger.InfoLogger.Println("err connecting to database")
+		os.Exit(1)
 	}
 
-	logger.InfoLogger.Println("connected to Database succesfully")
+	logger.InfoLogger.Println("connected to database succesfully")
 
 	return database, nil
 }

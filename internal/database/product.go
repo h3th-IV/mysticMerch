@@ -111,7 +111,7 @@ func (dm *DBModel) RemoveProductFromStore(productUUID string) error {
 /* Normal Product operations */
 
 // viewProducts --a list of products for home page
-func (dm *DBModel) ViewProducts() ([]*models.ResponseProduct, error) {
+func (dm *DBModel) ViewHomeProducts() ([]*models.ResponseProduct, error) {
 	query := `select top 30 product_name, description, image, price, rating from products`
 
 	tx, err := dm.DB.Begin()
