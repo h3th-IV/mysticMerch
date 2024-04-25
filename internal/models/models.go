@@ -55,7 +55,7 @@ type Product struct {
 	Description string  `json:"description"`
 	Image       string  `json:"image"`
 	Price       float64 `json:"price"`
-	Rating      uint8   `json:"rating"`
+	Rating      int8    `json:"rating"`
 }
 
 type NewProduct struct {
@@ -76,13 +76,17 @@ type RequestProduct struct {
 	Size        string `json:"size"`
 }
 
+type RequestProductView struct {
+	ProductUUID string `json:"product_id"`
+}
+
 // simplified product for API response
 type ResponseProduct struct {
-	ProductName string `json:"product_name"`
-	Description string `json:"description"`
-	Price       string `json:"price"`
-	Rating      string `json:"rating"`
-	Image       string `json:"image"`
+	ProductName string  `json:"product_name"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	Rating      int8    `json:"rating"`
+	Image       string  `json:"image"`
 }
 
 type RemoveProduct struct {

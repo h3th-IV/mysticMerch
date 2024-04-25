@@ -326,11 +326,22 @@ func SearchProduct(w http.ResponseWriter, r *http.Request) {
 
 // veiw product ##
 func ViewProduct(w http.ResponseWriter, r *http.Request) {
-	Var := mux.Vars(r)
-	Product_id := Var["id"]
+	var Product *models.RequestProductView
+	if err := json.NewDecoder(r.Body).Decode(&Product); err != nil {
+		utils.ReplaceLogger.Error("failed to decode object", zap.Error(err))
+		utils.ServerError(w, "failed to decode objects", err)
+		return
+	}
 
 	//get by the uuid of product
-	Product, err := dataBase.GetProduct(Product_id)
+	ViewProduct, err := dataBase.GetProduct(Product.ProductUUID)
+	Produce := &models.ResponseProduct{
+		ProductName: ViewProduct.ProductName,
+		Description: ViewProduct.Description,
+		Price:       ViewProduct.Price,
+		Rating:      ViewProduct.Rating,
+		Image:       ViewProduct.Image,
+	}
 	if err != nil {
 		utils.ReplaceLogger.Error("failed to fetch product from DB", zap.Error(err))
 		response := map[string]interface{}{
@@ -342,7 +353,7 @@ func ViewProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	response := map[string]interface{}{
 		"message": "product details found",
-		"item":    Product,
+		"item":    Produce,
 	}
 	apiResponse(response, w)
 }

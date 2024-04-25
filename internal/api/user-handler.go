@@ -1,5 +1,5 @@
 package api
 
-func test() {
+func Test() {
 
 }

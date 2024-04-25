@@ -17,7 +17,7 @@ func NewProduct(name, description, image string, price float64) (*models.Product
 		Description: description,
 		Image:       image,
 		Price:       price,
-		Rating:      uint8(0),
+		Rating:      int8(0),
 	}, err
 }
 
@@ -112,7 +112,7 @@ func (dm *DBModel) RemoveProductFromStore(productUUID string) error {
 
 // viewProducts --a list of products for home page
 func (dm *DBModel) ViewHomeProducts() ([]*models.ResponseProduct, error) {
-	query := `select top 30 product_name, description, image, price, rating from products`
+	query := `select product_name, description, image, price, rating from products limit 30`
 
 	tx, err := dm.DB.Begin()
 	if err != nil {
@@ -146,7 +146,7 @@ func (dm *DBModel) ViewHomeProducts() ([]*models.ResponseProduct, error) {
 
 // get product for other Operations by product uuid
 func (dm *DBModel) GetProduct(productUUID string) (*models.Product, error) {
-	query := `select product_id, product_name, description, image, price, rating from products where product_id = ?`
+	query := `select product_name, description, image, price, rating from products where product_id = ?`
 
 	tx, err := dm.DB.Begin()
 	if err != nil {
@@ -167,7 +167,7 @@ func (dm *DBModel) GetProduct(productUUID string) (*models.Product, error) {
 	defer row.Close()
 	var Product models.Product
 	if row.Next() {
-		err = row.Scan(&Product.ProductID, &Product.ProductName, &Product.Description, &Product.Image, &Product.Price, &Product.Rating)
+		err = row.Scan(&Product.ProductName, &Product.Description, &Product.Image, &Product.Price, &Product.Rating)
 		if err != nil {
 			return nil, err
 		}
