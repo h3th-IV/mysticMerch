@@ -366,7 +366,7 @@ func GetUserCart(w http.ResponseWriter, r *http.Request) {
 		response := map[string]interface{}{
 			"mesaage": "unable to fetch user's cart",
 		}
-		http.Error(w, "", http.StatusInternalServerError)
+		utils.ServerError(w, "unable to fetch user cart", err)
 		apiResponse(response, w)
 		return
 	}

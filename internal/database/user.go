@@ -112,12 +112,15 @@ func (dm *DBModel) GetAllUsers() ([]*models.ResponseUser, error) {
 	defer rows.Close()
 	var Users []*models.ResponseUser
 	for rows.Next() {
-		var uSer *models.ResponseUser
-		rows.Scan(&uSer.ID, &uSer.FirstName, &uSer.LastName, &uSer.PhoneNumber)
-		if err != nil {
+		uSer := &models.ResponseUser{}
+		if err := rows.Scan(&uSer.ID, &uSer.FirstName, &uSer.LastName, &uSer.PhoneNumber); err != nil {
 			return nil, err
 		}
 		Users = append(Users, uSer)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	if err := tx.Commit(); err != nil {
 		return nil, err
@@ -238,7 +241,7 @@ func (dm *DBModel) ReturnUserAddress(userID int) ([]*models.Address, error) {
 	defer rows.Close()
 	var UserAddrs []*models.Address
 	for rows.Next() {
-		var useraddr *models.Address
+		useraddr := &models.Address{}
 		if err := rows.Scan(&useraddr.HouseNo, &useraddr.Street, &useraddr.City, &useraddr.PostalCode); err != nil {
 			return nil, err
 		}

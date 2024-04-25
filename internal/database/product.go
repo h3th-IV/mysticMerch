@@ -132,9 +132,11 @@ func (dm *DBModel) ViewProducts() ([]*models.ResponseProduct, error) {
 	}
 	var Products []*models.ResponseProduct
 	for rows.Next() {
-		var product *models.ResponseProduct
-		rows.Scan(&product.ProductName, &product.Description, &product.Image, &product.Price, &product.Rating)
-		if err != nil {
+		product := &models.ResponseProduct{}
+		if err := rows.Scan(&product.ProductName, &product.Description, &product.Image, &product.Price, &product.Rating); err != nil {
+			return nil, err
+		}
+		if err := rows.Err(); err != nil {
 			return nil, err
 		}
 		Products = append(Products, product)
@@ -201,7 +203,7 @@ func (dm *DBModel) GetProductByName(name string) ([]*models.ResponseProduct, err
 
 	var Products []*models.ResponseProduct
 	for rows.Next() {
-		var product *models.ResponseProduct
+		product := &models.ResponseProduct{}
 		err := rows.Scan(&product.ProductName, &product.Description, &product.Price, &product.Rating, &product.Image)
 		if err != nil {
 			return nil, err

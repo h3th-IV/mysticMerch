@@ -32,7 +32,8 @@ func (dm *DBModel) GetUserCart(userID int) ([]*models.ResponseCartProducts, erro
 
 	var userCart []*models.ResponseCartProducts
 	for rows.Next() {
-		var userProducts *models.ResponseCartProducts
+		//initialize pointer first
+		userProducts := &models.ResponseCartProducts{}
 		err := rows.Scan(&userProducts.ProductName, &userProducts.Price, &userProducts.Rating, &userProducts.Quantity, &userProducts.Color, userProducts.Size)
 		if err != nil {
 			return nil, err
@@ -168,7 +169,7 @@ func (dm *DBModel) GetItemFromCart(userId, productID int) (*models.ResponseProdu
 	defer stmt.Close()
 
 	row := stmt.QueryRow(userId, productID)
-	var item *models.ResponseProduct
+	item := &models.ResponseProduct{}
 
 	err = row.Scan(&item.ProductName, &item.Description, &item.Price, &item.Rating, &item.Image)
 	if err != nil {
