@@ -68,6 +68,7 @@ func (dm *DBModel) AddProductoCart(userID, quantity int, productUUID string, col
 		return err
 	}
 	defer stmt.Close()
+	fmt.Println(product.ProductID)
 	_, err = stmt.Exec(userID, product.ProductID, product.ProductName, product.Description, product.Price, product.Rating, product.Image, quantity, color, size)
 	if err != nil {
 		return err
@@ -96,6 +97,8 @@ func (dm *DBModel) CheckProductExistInUserCart(userid int, productUUID string) (
 	if countErr != nil {
 		return false, countErr
 	}
+	fmt.Println(userid)
+	fmt.Println("here here")
 	fmt.Println(count)
 	return count > 0, nil
 }

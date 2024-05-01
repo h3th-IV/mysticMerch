@@ -389,7 +389,7 @@ func GetUserCart(w http.ResponseWriter, r *http.Request) {
 	apiResponse(response, w)
 }
 
-// edit prduct ##
+// add product to cart##
 func AddtoCart(w http.ResponseWriter, r *http.Request) {
 	//get user Id from token
 	uuid := r.Context().Value(utils.UserIDkey).(string)
@@ -558,6 +558,7 @@ func RemovefromCart(w http.ResponseWriter, r *http.Request) {
 	}
 	//check existence of product
 	if !exist {
+		utils.ReplaceLogger.Error("product does not exist in user cart", zap.Error(err))
 		response := map[string]interface{}{
 			"message": "product not found in user's cart",
 		}
@@ -628,7 +629,7 @@ func GetItemFromCart(w http.ResponseWriter, r *http.Request) {
 	}
 	//write response
 	response := map[string]interface{}{
-		"message": "item retrived from user's cart",
+		"message": "item retrieved from user's cart",
 		"item":    item,
 	}
 	apiResponse(response, w)
