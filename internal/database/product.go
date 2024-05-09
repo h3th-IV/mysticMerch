@@ -27,7 +27,7 @@ func NewProduct(name, description, image string, price float64) (*models.Product
 func (dm *DBModel) AddProduct(adminID int, name, description, image string, price float64) (int64, error) {
 	//set ratings to 0 initially
 	if adminID != 1 {
-		return 0, errors.New("only admin can add product")
+		return 0, errors.New("only admin can add products")
 	}
 	product, err := NewProduct(name, description, image, price)
 	if err != nil {
