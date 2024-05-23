@@ -58,7 +58,7 @@ func (dm *DBModel) InsertUser(fname, lname, email, phoneNumber, password string)
 		if errors.As(err, &utils.MySQLErr) {
 			//check if error is existing credentials (not unique) with the constraint 'users_uc_email'
 			if utils.MySQLErr.Number == 1062 && strings.Contains(utils.MySQLErr.Message, "user_uc_email") {
-				return utils.ErrInvalidCredentials
+				return utils.ErrExsistingCrednetials
 			}
 		}
 		return err
